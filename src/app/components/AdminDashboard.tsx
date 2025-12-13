@@ -14,12 +14,16 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
     const router = useRouter();
     const [newUser, setNewUser] = useState({ username: '', password: '' });
     const inputRef = useRef<HTMLInputElement>(null);
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        tags: '',
+        summary: ''
+    });
     const [file, setFile] = useState<File | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [newUser, setNewUser] = useState({ username: '', password: '' });
 
-    const inputRef = useRef<HTMLInputElement>(null);
     const videoPreviewRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [thumbnailBlob, setThumbnailBlob] = useState<Blob | null>(null);
@@ -218,15 +222,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                         ユーザー管理
                     </button>
                 )}
-                {user.role === 'admin' && (
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={activeTab === 'users' ? 'btn-primary' : ''}
-                        style={{ padding: '10px 20px', borderRadius: 'var(--radius-sm)', border: activeTab === 'users' ? 'none' : '1px solid #ddd', background: activeTab === 'users' ? 'var(--primary-color)' : '#fff', color: activeTab === 'users' ? '#fff' : '#666' }}
-                    >
-                        ユーザー管理
-                    </button>
-                )}
+
             </div>
 
             {/* Content */}
