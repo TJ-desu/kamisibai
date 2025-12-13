@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { getUsers } from '@/lib/data';
 import { cookies } from 'next/headers';
 
+export const runtime = 'edge';
+
 export async function POST(request: Request) {
     try {
         const { username, password } = await request.json();

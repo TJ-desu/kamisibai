@@ -4,6 +4,8 @@ import { getUsers, saveUsers } from '@/lib/data';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 
+export const runtime = 'edge';
+
 // GET: List all users (Admin only)
 export async function GET(request: Request) {
     const token = (await cookies()).get('auth_token');

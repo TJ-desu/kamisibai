@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getVideos, saveVideos } from '@/lib/data';
 import { cookies } from 'next/headers';
 
+export const runtime = 'edge';
+
 export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const token = (await cookies()).get('auth_token');

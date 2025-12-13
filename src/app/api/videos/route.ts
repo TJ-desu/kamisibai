@@ -2,9 +2,9 @@
 import { NextResponse } from 'next/server';
 import { getVideos, saveVideos } from '@/lib/data';
 import { Video } from '@/types';
-import fs from 'fs';
-import path from 'path';
 import { cookies } from 'next/headers';
+
+export const runtime = 'edge';
 
 export async function GET() {
     const videos = getVideos();

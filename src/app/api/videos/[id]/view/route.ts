@@ -1,5 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'edge';
 import { getVideos, saveVideos } from '@/lib/data';
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {

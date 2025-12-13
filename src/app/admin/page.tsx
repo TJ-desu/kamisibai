@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { getVideos, getUsers } from '@/lib/data';
 import AdminDashboard from '@/app/components/AdminDashboard';
 
+export const runtime = 'edge';
+
 export default async function AdminPage() {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token');
