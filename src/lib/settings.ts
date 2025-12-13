@@ -3,7 +3,7 @@
 // The previous file defined interfaces inline. I should preserve them or import.
 // Let's preserve them to avoid breaking imports elsewhere.
 
-import defaultSettings from '../data/settings.json';
+import defaultSettings from '../data/settings.default.json';
 
 export interface AwsSettings {
     accessKeyId: string;
