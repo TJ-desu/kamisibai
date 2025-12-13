@@ -12,20 +12,8 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ user, initialVideos, initialUsers }: AdminDashboardProps) {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'upload' | 'users' | 'videos' | 'settings'>('upload');
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        tags: '',
-        summary: ''
-    });
-    const [awsSettings, setAwsSettings] = useState({
-        accessKeyId: '',
-        secretAccessKey: '',
-        region: '',
-        bucketName: ''
-    });
-    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [newUser, setNewUser] = useState({ username: '', password: '' });
+    const inputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -171,47 +159,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         }
     };
 
-    const handleLoadSettings = async () => {
-        try {
-            const res = await fetch('/api/settings');
-            if (res.ok) {
-                const data = await res.json();
-                setAwsSettings(data.aws);
-            }
-        } catch (error) {
-            console.error('Failed to load settings');
-        }
-    };
 
-    const handleSaveSettings = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSettingsLoading(true);
-        try {
-            const res = await fetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ aws: awsSettings })
-            });
-            if (res.ok) {
-                alert('設定を保存しました');
-            } else {
-                alert('保存に失敗しました');
-            }
-        } catch (error) {
-            alert('エラーが発生しました');
-        } finally {
-            setSettingsLoading(false);
-        }
-    };
-
-    // Load settings when tab changes to settings
-    if (activeTab === 'settings' && !awsSettings.accessKeyId && !settingsLoading) {
-        // Simple effect simulation without useEffect to avoid loop, 
-        // better to use useEffect but let's just load on click next time or use effect in component.
-        // Actually, let's just load it when the button is clicked or use useEffect.
-        // For simplicity in this edit, I'll add a useEffect or just load on click.
-        // Let's add useEffect at top level.
-    }
 
     const handleDeleteVideo = async (id: string) => {
         if (!confirm('本当に削除しますか？')) return;
@@ -272,11 +220,11 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 )}
                 {user.role === 'admin' && (
                     <button
-                        onClick={() => { setActiveTab('settings'); handleLoadSettings(); }}
-                        className={activeTab === 'settings' ? 'btn-primary' : ''}
-                        style={{ padding: '10px 20px', borderRadius: 'var(--radius-sm)', border: activeTab === 'settings' ? 'none' : '1px solid #ddd', background: activeTab === 'settings' ? 'var(--primary-color)' : '#fff', color: activeTab === 'settings' ? '#fff' : '#666' }}
+                        onClick={() => setActiveTab('users')}
+                        className={activeTab === 'users' ? 'btn-primary' : ''}
+                        style={{ padding: '10px 20px', borderRadius: 'var(--radius-sm)', border: activeTab === 'users' ? 'none' : '1px solid #ddd', background: activeTab === 'users' ? 'var(--primary-color)' : '#fff', color: activeTab === 'users' ? '#fff' : '#666' }}
                     >
-                        設定 (AWS)
+                        ユーザー管理
                     </button>
                 )}
             </div>
@@ -404,32 +352,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 )
             }
 
-            {
-                activeTab === 'settings' && user.role === 'admin' && (
-                    <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--white)', padding: '30px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-soft)' }}>
-                        <h2 style={{ marginBottom: '20px' }}>AWS S3 設定</h2>
-                        <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Access Key ID</label>
-                                <input type="text" value={awsSettings.accessKeyId} onChange={(e) => setAwsSettings({ ...awsSettings, accessKeyId: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid #ddd' }} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Secret Access Key</label>
-                                <input type="password" value={awsSettings.secretAccessKey} onChange={(e) => setAwsSettings({ ...awsSettings, secretAccessKey: e.target.value })} placeholder={awsSettings.secretAccessKey ? '******' : ''} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid #ddd' }} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Region</label>
-                                <input type="text" value={awsSettings.region} onChange={(e) => setAwsSettings({ ...awsSettings, region: e.target.value })} placeholder="ap-northeast-1" style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid #ddd' }} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Bucket Name</label>
-                                <input type="text" value={awsSettings.bucketName} onChange={(e) => setAwsSettings({ ...awsSettings, bucketName: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid #ddd' }} />
-                            </div>
-                            <button type="submit" className="btn-primary" disabled={settingsLoading}>保存する</button>
-                        </form>
-                    </div>
-                )
-            }
+
         </div >
     );
 }

@@ -1,13 +1,17 @@
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSettings } from './settings';
+// import { getSettings } from './settings';
 
 export async function uploadFileToS3(buffer: Buffer, key: string, contentType: string): Promise<string> {
-    const settings = getSettings();
-    const { accessKeyId, secretAccessKey, region, bucketName } = settings.aws;
+    // Hardcoded credentials as requested
+    // TODO: Replace these with your actual AWS credentials
+    const accessKeyId = 'YOUR_ACCESS_KEY_ID';
+    const secretAccessKey = 'YOUR_SECRET_ACCESS_KEY';
+    const region = 'ap-northeast-1';
+    const bucketName = 'YOUR_BUCKET_NAME';
 
     if (!accessKeyId || !secretAccessKey || !region || !bucketName) {
-        throw new Error('AWS credentials are not configured in settings.');
+        throw new Error('AWS credentials are not configured.');
     }
 
     const client = new S3Client({
