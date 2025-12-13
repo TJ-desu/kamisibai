@@ -1,9 +1,9 @@
 
-import { Settings } from '@/types'; // Re-using types or defining them here if not in @/types. The file had interface definition.
+// Settings interface is defined in this file below.
 // The previous file defined interfaces inline. I should preserve them or import.
 // Let's preserve them to avoid breaking imports elsewhere.
 
-import defaultSettings from '@/data/settings.json';
+import defaultSettings from '../data/settings.json';
 
 export interface AwsSettings {
     accessKeyId: string;

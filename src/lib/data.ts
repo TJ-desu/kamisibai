@@ -1,7 +1,7 @@
 
 import { Video, User } from '@/types';
-import videosData from '@/data/videos.json';
-import usersData from '@/data/users.json';
+import videosData from '../data/videos.json';
+import usersData from '../data/users.json';
 
 // In-memory cache to allow temporary changes during runtime
 let videosCache: Video[] = [...(videosData as Video[])];
