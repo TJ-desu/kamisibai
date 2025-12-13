@@ -1,8 +1,9 @@
 
-import fs from 'fs';
-import path from 'path';
+import { Settings } from '@/types'; // Re-using types or defining them here if not in @/types. The file had interface definition.
+// The previous file defined interfaces inline. I should preserve them or import.
+// Let's preserve them to avoid breaking imports elsewhere.
 
-const settingsFilePath = path.join(process.cwd(), 'src/data/settings.json');
+import defaultSettings from '@/data/settings.json';
 
 export interface AwsSettings {
     accessKeyId: string;
@@ -15,18 +16,14 @@ export interface Settings {
     aws: AwsSettings;
 }
 
+// In-memory cache
+let settingsCache: Settings = defaultSettings as Settings;
+
 export function getSettings(): Settings {
-    if (!fs.existsSync(settingsFilePath)) {
-        return { aws: { accessKeyId: '', secretAccessKey: '', region: '', bucketName: '' } };
-    }
-    try {
-        const content = fs.readFileSync(settingsFilePath, 'utf-8');
-        return JSON.parse(content);
-    } catch {
-        return { aws: { accessKeyId: '', secretAccessKey: '', region: '', bucketName: '' } };
-    }
+    return settingsCache;
 }
 
 export function saveSettings(settings: Settings) {
-    fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2), 'utf-8');
+    settingsCache = settings;
+    console.warn('Persistence warning: saveSettings is in-memory only on Edge Runtime.');
 }
