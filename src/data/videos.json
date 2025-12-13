@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "title": "ももたろう",
+    "description": "むかしむかしあるところに、おじいさんとおばあさんが住んでいました。",
+    "tags": [
+      "昔話",
+      "3歳〜",
+      "定番"
+    ],
+    "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "thumbnail": "https://placehold.co/600x400/FFB7C5/ffffff?text=Momotaro",
+    "viewCount": 0,
+    "uploaderId": "admin",
+    "summary": "桃から生まれた男の子が、犬・猿・キジを連れて鬼退治に行くお話。"
+  },
+  {
+    "id": "2",
+    "title": "うさぎとかめ",
+    "description": "足の速いうさぎと、ゆっくりなかめが競争することになりました。",
+    "tags": [
+      "童話",
+      "教訓",
+      "2歳〜"
+    ],
+    "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "thumbnail": "https://placehold.co/600x400/D6D3D1/ffffff?text=Usagi+to+Kame",
+    "viewCount": 0,
+    "uploaderId": "admin",
+    "summary": "油断したうさぎと、コツコツ歩いたかめの競争のお話。"
+  }
+]

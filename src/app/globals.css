@@ -1,0 +1,67 @@
+:root {
+  --primary-color: #b1a08a;
+  /* User specified Greige */
+  --bg-soft: #FFFFFF;
+  /* Pure White for clean look */
+  --bg-accent: #F7F5F3;
+  /* Very subtle greige tint for contrast if needed */
+  --accent-color: #b1a08a;
+  /* Use primary for accent too, to keep it 2-tone */
+  --text-dark: #5D554D;
+  /* Brownish gray to match greige */
+  --text-light: #9CA3AF;
+  --bg-base: #FFFFFF;
+  --white: #FFFFFF;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 8px;
+  --shadow-soft: 0 4px 12px rgba(177, 160, 138, 0.15);
+  /* Shadow using greige tint */
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-dark);
+  font-family: var(--font-mplus), sans-serif;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(177, 160, 138, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(177, 160, 138, 0.6);
+}
