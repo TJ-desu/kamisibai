@@ -1,9 +1,9 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getVideos, saveVideos } from '@/lib/data';
 import { cookies } from 'next/headers';
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const token = (await cookies()).get('auth_token');
     if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
