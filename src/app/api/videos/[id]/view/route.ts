@@ -2,16 +2,15 @@
 import { NextResponse } from 'next/server';
 import { getVideos, saveVideos } from '@/lib/data';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-    const id = request.url.split('/').slice(-2)[0]; // hacky URL parsing if params not working as expected in some setups, but params.id is standard Next.js
-    // Actually params are passed as second arg to route handlers in App Router
-    // But let's rely on standard params.
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    const { id } = params;
 
     // Note: params availability depends on folder structure.
     // /api/videos/[id]/view/route.ts -> params.id should be available.
 
     const videos = getVideos();
-    const videoIndex = videos.findIndex(v => v.id === params.id);
+    const videoIndex = videos.findIndex(v => v.id === id);
 
     if (videoIndex === -1) {
         return NextResponse.json({ message: 'Video not found' }, { status: 404 });
