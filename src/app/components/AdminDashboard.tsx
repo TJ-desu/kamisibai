@@ -12,6 +12,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ user, initialVideos, initialUsers }: AdminDashboardProps) {
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState<'upload' | 'users' | 'videos'>('upload');
     const [newUser, setNewUser] = useState({ username: '', password: '' });
     const inputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
