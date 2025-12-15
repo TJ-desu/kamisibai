@@ -87,7 +87,7 @@ export class AwsClient {
         const canonicalRequest = [
             method,
             url.pathname,
-            url.searchParams.sort().toString(),
+            (url.searchParams.sort(), url.searchParams.toString()), // Sort in place, then stringify
             canonicalHeaders,
             signedHeaders,
             headers.get("x-amz-content-sha256") || "UNSIGNED-PAYLOAD"
