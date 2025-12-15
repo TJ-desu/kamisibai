@@ -5,9 +5,9 @@
 
 const encoder = new TextEncoder();
 
-async function hmac(key: CryptoKey | ArrayBuffer, string: string) {
+async function hmac(key: CryptoKey | ArrayBuffer | Uint8Array, string: string) {
     const cryptoKey =
-        key instanceof ArrayBuffer
+        (key instanceof ArrayBuffer || key instanceof Uint8Array)
             ? await crypto.subtle.importKey(
                 "raw",
                 key,
@@ -15,7 +15,7 @@ async function hmac(key: CryptoKey | ArrayBuffer, string: string) {
                 false,
                 ["sign"]
             )
-            : key;
+            : key as CryptoKey;
     return crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(string));
 }
 
