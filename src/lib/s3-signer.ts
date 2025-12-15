@@ -10,7 +10,7 @@ async function hmac(key: CryptoKey | ArrayBuffer | Uint8Array, string: string) {
         (key instanceof ArrayBuffer || key instanceof Uint8Array)
             ? await crypto.subtle.importKey(
                 "raw",
-                key,
+                key as any,
                 { name: "HMAC", hash: "SHA-256" },
                 false,
                 ["sign"]
