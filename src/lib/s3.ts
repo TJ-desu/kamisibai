@@ -1,27 +1,46 @@
 
-// import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-// The AWS SDK is causing "node:stream" errors on Cloudflare Edge Runtime.
-// For now, we utilize a lightweight approach or fallback.
-
-// Since we cannot easily sign AWS requests on Edge without heavy crypto libraries (that usage stream),
-// and unauthenticated CORS upload is insecure, we will use a purely client-side or mock approach for this prototype deployment.
-// TODO: Implement aws4fetch for Edge-compatible S3 uploads in Phase 3.5
+import { AwsClient } from './s3-signer';
+import { getSettings } from './settings';
 
 export async function uploadFileToS3(buffer: Buffer, key: string, contentType: string): Promise<string> {
-    console.warn('Edge Runtime S3 Upload: AWS SDK disabled to prevent build errors. Returning placeholder.');
+    const settings = getSettings();
+    const { accessKeyId, secretAccessKey, region, bucketName } = settings.aws;
 
-    // In a real Edge app, we would use 'aws4fetch' or a separate Worker for signing.
-    // For this prototype, to ensure the site DEPLOYS, we mock the success.
-
-    // Simulate latency
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Return a usable placeholder URL so the UI works
-    const bucketName = 'YOUR_BUCKET_NAME';
-    const region = 'ap-northeast-1';
-    // If the file is an image, return a placeholder image. If video, a sample video.
-    if (contentType.startsWith('image/')) {
-        return `https://placehold.co/600x400/b1a08a/ffffff?text=${encodeURIComponent(key)}`;
+    if (!accessKeyId || !secretAccessKey || !region || !bucketName) {
+        throw new Error('AWS credentials are not configured in Admin Settings.');
+        // Note: Filesystem settings are read-only defaults on Edge immediately after build.
+        // User must configure them via UI or Env Vars if not in default json.
     }
-    return `https://www.w3schools.com/html/mov_bbb.mp4`; // Sample video for demo
+
+    const client = new AwsClient({
+        accessKeyId,
+        secretAccessKey,
+        region,
+        service: 's3',
+    });
+
+    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+
+    const request = new Request(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': contentType,
+            // 'x-amz-acl': 'public-read', // Optional based on bucket policy
+        },
+        body: buffer,
+    });
+
+    // Sign the request
+    const signedRequest = await client.sign(request);
+
+    // Perform the upload using standard fetch (Edge compatible)
+    const response = await fetch(signedRequest);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('S3 Upload Error:', errorText);
+        throw new Error(`S3 Upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    return url;
 }
