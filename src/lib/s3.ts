@@ -27,7 +27,7 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
             'Content-Type': contentType,
             // 'x-amz-acl': 'public-read', // Optional based on bucket policy
         },
-        body: buffer,
+        body: buffer as unknown as BodyInit,
     });
 
     // Sign the request
