@@ -129,14 +129,16 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             if (res.ok) {
                 alert('動画を追加しました！');
                 setFormData({ title: '', description: '', tags: '', summary: '' });
-                setFormData({ title: '', description: '', tags: '', summary: '' });
                 setFile(null);
                 setThumbnailBlob(null);
                 if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
                 setThumbnailPreviewUrl(null);
                 router.refresh();
             } else {
-                alert('エラーが発生しました');
+                const errorData = await res.json();
+                console.error('Upload Error Data:', errorData);
+                const errorMessage = errorData.s3Error || errorData.details || errorData.message || '不明なエラーが発生しました';
+                alert(`アップロードに失敗しました:\n${errorMessage}`);
             }
         } catch (error) {
             console.error(error);
