@@ -16,8 +16,28 @@ export interface Settings {
     aws: AwsSettings;
 }
 
-// In-memory cache
-let settingsCache: Settings = defaultSettings as Settings;
+// Helper to decode if needed
+function decode(val: string): string {
+    if (val && val.startsWith('ENC_')) {
+        try {
+            return atob(val.slice(4));
+        } catch (e) {
+            console.error('Failed to decode setting', e);
+            return val;
+        }
+    }
+    return val;
+}
+
+// In-memory cache initialization with decoding
+let settingsCache: Settings = {
+    aws: {
+        accessKeyId: decode((defaultSettings as any).aws.accessKeyId),
+        secretAccessKey: decode((defaultSettings as any).aws.secretAccessKey),
+        region: (defaultSettings as any).aws.region,
+        bucketName: (defaultSettings as any).aws.bucketName,
+    }
+};
 
 export function getSettings(): Settings {
     return settingsCache;
