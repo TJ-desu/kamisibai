@@ -19,7 +19,9 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
         service: 's3',
     });
 
-    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+    // Ensure key components are properly encoded for the URL (and Signature match)
+    const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${encodedKey}`;
 
     const request = new Request(url, {
         method: 'PUT',

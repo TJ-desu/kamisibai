@@ -35,7 +35,11 @@ export async function POST(request: Request) {
 
         // Save file
         const buffer = await file.arrayBuffer(); // Use standard ArrayBuffer
-        const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        // Sanitize filename to strict ASCII to avoid S3 signature issues with specific characters
+        // Use a UUID-like structure + clean extension
+        const ext = file.name.split('.').pop()?.substring(0, 10).replace(/[^a-z0-9]/gi, '') || 'bin';
+        const randomId = crypto.randomUUID();
+        const filename = `videos/${randomId}.${ext}`;
 
         let url = '';
         let thumbnailUrl = `https://placehold.co/600x400/b1a08a/ffffff?text=${encodeURIComponent(title)}`; // Default
