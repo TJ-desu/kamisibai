@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         }
 
         // Save file
-        const buffer = Buffer.from(await file.arrayBuffer());
+        const buffer = await file.arrayBuffer(); // Use standard ArrayBuffer
         const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
 
         let url = '';
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
             // Upload thumbnail if exists
             const thumbnailFile = formData.get('thumbnail') as File | null;
             if (thumbnailFile) {
-                const thumbBuffer = Buffer.from(await thumbnailFile.arrayBuffer());
+                const thumbBuffer = await thumbnailFile.arrayBuffer();
                 const thumbFilename = `thumbnails/${Date.now()}_thumb.jpg`;
                 const thumbUrl = await uploadFileToS3(thumbBuffer, thumbFilename, 'image/jpeg');
                 thumbnailUrl = thumbUrl;

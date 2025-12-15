@@ -2,7 +2,7 @@
 import { AwsClient } from './s3-signer';
 import { getSettings } from './settings';
 
-export async function uploadFileToS3(buffer: Buffer, key: string, contentType: string): Promise<string> {
+export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: string, contentType: string): Promise<string> {
     const settings = getSettings();
     const { accessKeyId, secretAccessKey, region, bucketName } = settings.aws;
 
