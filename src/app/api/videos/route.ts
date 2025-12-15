@@ -12,6 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    console.log(`[API] Video Upload Request - Version: ${new Date().toISOString()}`);
     const token = (await cookies()).get('auth_token');
     if (!token) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
