@@ -81,10 +81,14 @@ export async function POST(request: Request) {
         saveVideos(videos);
 
         return NextResponse.json(newVideo, { status: 201 });
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        console.error('Upload Process Error:', error);
         return NextResponse.json(
-            { message: 'Internal Server Error' },
+            {
+                message: 'Internal Server Error',
+                details: error.message || 'Unknown error',
+                s3Error: error.toString()
+            },
             { status: 500 }
         );
     }
