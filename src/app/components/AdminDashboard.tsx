@@ -135,14 +135,12 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 setThumbnailPreviewUrl(null);
                 router.refresh();
             } else {
-                const errorData = await res.json();
-                console.error('Upload Error Data:', errorData);
                 const errorMessage = errorData.s3Error || errorData.details || errorData.message || '不明なエラーが発生しました';
-                alert(`アップロードに失敗しました:\n${errorMessage}`);
+                alert(`アップロードに失敗しました (Server):\n${errorMessage}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('エラーが発生しました');
+            alert(`通信エラーが発生しました (Network):\n${error.message || error}`);
         } finally {
             setLoading(false);
         }
@@ -198,7 +196,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         <div className="container" style={{ padding: '40px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <h1 style={{ color: 'var(--primary-color)' }}>
-                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v1.1</span>
+                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v1.2</span>
                 </h1>
                 <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff' }}>
                     ログアウト
