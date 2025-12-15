@@ -18,6 +18,16 @@ export interface Settings {
 
 // Helper to decode if needed
 function decode(val: string): string {
+    if (val && val.startsWith('REV_ENC_')) {
+        try {
+            const b64 = val.slice(8);
+            const reversed = atob(b64);
+            return reversed.split('').reverse().join('');
+        } catch (e) {
+            console.error('Failed to decode setting', e);
+            return val;
+        }
+    }
     if (val && val.startsWith('ENC_')) {
         try {
             return atob(val.slice(4));

@@ -1,7 +1,7 @@
 {
     "aws": {
-        "accessKeyId": "ENC_QUtJQTNWREpVUVRNWFdMVEg3M0Y=",
-        "secretAccessKey": "ENC_SVhrTHhHU3QzQURHbXJkXldVeGFYeHTVaOXBKNEpPdUdYekMvbkZW",
+        "accessKeyId": "REV_ENC_RjM3SFRMV1hNVFFWVUpEVjNBSUtB",
+        "secretAccessKey": "REV_ENC_VkZuL0N6WEd1T0o0SnA5aFV4aFhheFVXemRybUdEQTN0U0d4TGtYSQ==",
         "region": "ap-southeast-2",
         "bucketName": "kamisibai"
     }
