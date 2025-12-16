@@ -1,7 +1,10 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
+
+// Force dynamic for DB interaction
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Removed runtime = 'edge' to support standard Prisma Client in Node environment
 

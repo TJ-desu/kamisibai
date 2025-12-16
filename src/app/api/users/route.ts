@@ -1,10 +1,13 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 
 // Removed runtime = 'edge'
+
+// Force dynamic because we read/write DB
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // GET: List all users (Admin only)
 export async function GET(request: Request) {

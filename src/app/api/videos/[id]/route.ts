@@ -1,9 +1,11 @@
-
+```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
 
-// Removed runtime = 'edge'
+// Force dynamic
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
