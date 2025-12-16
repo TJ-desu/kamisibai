@@ -1,4 +1,5 @@
 import { getVideos } from '@/lib/data';
+import { signVideoUrls } from '@/lib/s3';
 import { notFound } from 'next/navigation';
 import VideoPlayer from '@/app/components/VideoPlayer';
 import Link from 'next/link';
@@ -6,8 +7,12 @@ import Link from 'next/link';
 export default async function WatchPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const { id } = params;
-    const videos = await getVideos();
-    const video = videos.find(v => v.id === id);
+    const allVideos = await getVideos();
+    const rawVideo = allVideos.find(v => v.id === id);
+
+    if (!rawVideo) return notFound();
+
+    const [video] = await signVideoUrls([rawVideo]);
 
     if (!video) return notFound();
 
