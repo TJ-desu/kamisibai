@@ -15,8 +15,8 @@ export default async function AdminPage() {
     }
 
     const user = JSON.parse(token.value);
-    const videos = getVideos();
-    const users = getUsers().map(({ password, ...u }) => ({ ...u, password: '' })); // Hide passwords
+    const videos = await getVideos();
+    const users = (await getUsers()).map(({ password, ...u }) => ({ ...u, password: '' })); // Hide passwords
 
     return <AdminDashboard user={user} initialVideos={videos} initialUsers={users} />;
 }
