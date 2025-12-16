@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 
 // Force dynamic
 export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
 
 export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;

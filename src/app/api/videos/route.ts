@@ -3,15 +3,15 @@ import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
 
 // Force dynamic for DB interaction
+// Force dynamic for DB interaction
 export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
 
 // Removed runtime = 'edge' to support standard Prisma Client in Node environment
 
 export async function GET() {
     try {
         const videos = await prisma.video.findMany({
-            orderBy: { updatedAt: 'desc' }
+            orderBy: { createdAt: 'desc' }
         });
         // Convert to app type if needed, or rely on consistency
         const mappedVideos = videos.map(v => ({

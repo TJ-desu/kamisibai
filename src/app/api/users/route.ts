@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Force dynamic because we read/write DB
 export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
 
 // GET: List all users (Admin only)
 export async function GET(request: Request) {
