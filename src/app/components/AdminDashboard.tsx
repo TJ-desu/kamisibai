@@ -218,12 +218,18 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         e.preventDefault();
         const video = editVideoPreviewRef.current;
         const canvas = canvasRef.current; // Reuse the same canvas ref
-        if (video && canvas) {
+
+        if (!video || !canvas) return;
+
+        try {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
+
             if (ctx) {
+                // This line will throw if the canvas is tainted (CORS error)
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
                 canvas.toBlob((blob) => {
                     if (blob) {
                         setEditThumbnailBlob(blob);
@@ -235,6 +241,10 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                     }
                 }, 'image/jpeg', 0.85);
             }
+        } catch (error: any) {
+            console.error('Thumbnail capture error:', error);
+            // Inform user about potential CORS issues
+            alert(`サムネイルの作成に失敗しました。\nエラー: ${error.message || '不明なエラー'}\n\n※ セキュリティ設定(CORS)の影響の可能性があります。時間を置いてから再読み込みしてください。`);
         }
     };
 
