@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
             ...video,
             title: title || video.title,
             description: description !== undefined ? description : video.description,
-            tags: tags !== undefined ? tags : video.tags,
+            tags: typeof tags === 'string' ? tags.split(',').map(t => t.trim()).filter(Boolean) : (tags !== undefined ? tags : video.tags),
             updatedAt: new Date().toISOString()
         };
 
