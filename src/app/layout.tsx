@@ -12,6 +12,10 @@ const mPlus = M_PLUS_Rounded_1c({
 export const metadata: Metadata = {
   title: "子どもに優しい紙芝居動画",
   description: "忙しいママのための、子供が喜ぶ厳選紙芝居動画サイト",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
