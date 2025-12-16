@@ -24,7 +24,6 @@ export async function POST(request: Request) {
         const title = formData.get('title') as string;
         const description = formData.get('description') as string;
         const tagsString = formData.get('tags') as string;
-        const summary = formData.get('summary') as string || '';
         const file = formData.get('file') as File;
 
         if (!title || !file) {
@@ -72,8 +71,7 @@ export async function POST(request: Request) {
             url: url,
             thumbnail: thumbnailUrl,
             viewCount: 0,
-            uploaderId: user.id,
-            summary: summary.slice(0, 140)
+            uploaderId: user.id
         };
 
         const videos = await getVideos();

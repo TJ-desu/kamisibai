@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     try {
         const body = await request.json();
-        const { title, description, summary, tags } = body;
+        const { title, description, tags } = body;
 
         const videos = await getVideos();
         const videoIndex = videos.findIndex(v => v.id === id);
@@ -64,7 +64,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
             ...video,
             title: title || video.title,
             description: description !== undefined ? description : video.description,
-            summary: summary !== undefined ? summary : video.summary,
             tags: tags !== undefined ? tags : video.tags,
             updatedAt: new Date().toISOString()
         };

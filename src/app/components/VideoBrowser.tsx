@@ -2,20 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { Video } from '@/types';
+import Link from 'next/link';
 
 export default function VideoBrowser({ initialVideos }: { initialVideos: Video[] }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
-    const [playingVideo, setPlayingVideo] = useState<Video | null>(null);
-
-    const handlePlayVideo = async (video: Video) => {
-        setPlayingVideo(video);
-        try {
-            await fetch(`/api/videos/${video.id}/view`, { method: 'POST' });
-        } catch (e) {
-            console.error('Failed to increment view count');
-        }
-    };
 
     // Extract all unique tags
     const allTags = useMemo(() => {
@@ -63,7 +54,6 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                         style={{
                             padding: '8px 16px',
                             borderRadius: '20px',
-
                             border: 'none',
                             backgroundColor: selectedTag === null ? 'var(--primary-color)' : '#fff',
                             color: selectedTag === null ? '#fff' : 'var(--text-light)',
@@ -80,7 +70,6 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                             style={{
                                 padding: '8px 16px',
                                 borderRadius: '20px',
-
                                 border: 'none',
                                 backgroundColor: selectedTag === tag ? 'var(--primary-color)' : '#fff',
                                 color: selectedTag === tag ? '#fff' : 'var(--text-light)',
@@ -106,20 +95,20 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                     gap: '24px'
                 }}>
                     {filteredVideos.map(video => (
-                        <div
+                        <Link
                             key={video.id}
-                            onClick={() => handlePlayVideo(video)}
+                            href={`/watch/${video.id}`}
                             style={{
+                                display: 'block',
                                 backgroundColor: '#fff',
                                 borderRadius: 'var(--radius-md)',
                                 overflow: 'hidden',
                                 boxShadow: 'var(--shadow-soft)',
                                 cursor: 'pointer',
                                 transition: 'transform 0.2s',
-                                border: '1px solid #eee'
+                                border: '1px solid #eee',
+                                textDecoration: 'none'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                         >
                             <div style={{ position: 'relative', paddingTop: '66%' /* 4:3 aspect ratio */ }}>
                                 <img
@@ -147,77 +136,14 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                                     ))}
                                 </div>
                                 <p style={{ fontSize: '0.9rem', color: '#666', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                    {video.summary || video.description}
+                                    {video.description}
                                 </p>
                                 <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '8px', textAlign: 'right' }}>
                                     👁️ {video.viewCount || 0} 回視聴
                                 </p>
                             </div>
-                        </div>
+                        </Link>
                     ))}
-                </div>
-            )}
-
-            {/* Player Modal */}
-            {playingVideo && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '20px'
-                }}
-                    onClick={() => setPlayingVideo(null)}
-                >
-                    <div style={{
-                        width: '100%',
-                        maxWidth: '900px',
-                        backgroundColor: '#000',
-                        borderRadius: 'var(--radius-md)',
-                        overflow: 'hidden',
-                        position: 'relative'
-                    }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => setPlayingVideo(null)}
-                            style={{
-                                position: 'absolute',
-                                top: '10px',
-                                right: '10px',
-                                backgroundColor: 'rgba(255,255,255,0.3)',
-                                border: 'none',
-                                color: '#fff',
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '50%',
-                                fontSize: '24px',
-                                zIndex: 10
-                            }}
-                        >
-                            ×
-                        </button>
-                        <video
-                            controls
-                            autoPlay
-                            muted
-                            playsInline
-                            src={playingVideo.url}
-                            style={{ width: '100%', height: 'auto', maxHeight: '80vh', display: 'block' }}
-                        >
-                            お使いのブラウザは動画タグに対応していません。
-                        </video>
-                        <div style={{ padding: '20px', backgroundColor: '#fff' }}>
-                            <h2>{playingVideo.title}</h2>
-                            <p style={{ marginTop: '10px' }}>{playingVideo.description}</p>
-                        </div>
-                    </div>
                 </div>
             )}
         </div>
