@@ -113,6 +113,10 @@ export class AwsClient {
         // Signature
         const signature = toHex(await hmac(kSigning, stringToSign));
 
+        // Apply headers to the request object
+        request.headers.set("X-Amz-Date", datetime);
+        request.headers.set("x-amz-content-sha256", headers.get("x-amz-content-sha256") || "UNSIGNED-PAYLOAD");
+
         // Authorization Header
         request.headers.set(
             "Authorization",
