@@ -135,6 +135,8 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 setThumbnailPreviewUrl(null);
                 router.refresh();
             } else {
+                const errorData = await res.json();
+                console.error('Upload Error Data:', errorData);
                 const errorMessage = errorData.s3Error || errorData.details || errorData.message || '不明なエラーが発生しました';
                 alert(`アップロードに失敗しました (Server):\n${errorMessage}`);
             }
