@@ -20,7 +20,7 @@ export default async function Home() {
       }}>
         <div className="container">
           <h1 style={{
-            fontSize: '2.5rem',
+            fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
             marginBottom: '10px',
             color: 'var(--text-dark)', /* Changed to dark text for greige theme */
             textShadow: 'none'
