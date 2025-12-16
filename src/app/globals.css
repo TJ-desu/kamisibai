@@ -29,7 +29,10 @@ body {
   background-color: var(--bg-base);
   color: var(--text-dark);
   font-family: var(--font-mplus), sans-serif;
+  /* Prevent horizontal scroll but allow vertical pull-to-refresh */
   overflow-x: hidden;
+  min-height: 100vh;
+  overscroll-behavior-y: auto;
 }
 
 a {

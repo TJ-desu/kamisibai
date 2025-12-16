@@ -259,9 +259,14 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 <h1 style={{ color: 'var(--primary-color)' }}>
                     管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.2.3</span>
                 </h1>
-                <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff' }}>
-                    ログアウト
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => window.location.reload()} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span>🔄</span> 更新
+                    </button>
+                    <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff' }}>
+                        ログアウト
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}
