@@ -1,11 +1,12 @@
 import { getVideos } from '@/lib/data';
+import { signVideoUrls } from '@/lib/s3';
 import VideoBrowser from '@/app/components/VideoBrowser';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic'; // To ensure we see new uploads immediately in this prototype
 
 export default async function Home() {
-  const videos = await getVideos();
+  const videos = await signVideoUrls(await getVideos());
 
   return (
     <main style={{ minHeight: '100vh', paddingBottom: '40px' }}>

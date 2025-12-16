@@ -125,4 +125,56 @@ export class AwsClient {
 
         return request;
     }
+
+    async getPresignedUrl(urlStr: string, expiresIn: number = 3600): Promise<string> {
+        const url = new URL(urlStr);
+        const now = new Date();
+        const datetime = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+        const date = datetime.slice(0, 8);
+
+        // Scope
+        const credentialScope = `${date}/${this.region}/${this.service}/aws4_request`;
+
+        // Query Params
+        url.searchParams.set("X-Amz-Algorithm", "AWS4-HMAC-SHA256");
+        url.searchParams.set("X-Amz-Credential", `${this.accessKeyId}/${credentialScope}`);
+        url.searchParams.set("X-Amz-Date", datetime);
+        url.searchParams.set("X-Amz-Expires", expiresIn.toString());
+        url.searchParams.set("X-Amz-SignedHeaders", "host");
+
+        // Canonical Headers (just host)
+        const canonicalHeaders = `host:${url.host}\n`;
+        const signedHeaders = "host";
+
+        // Canonical Request
+        // Note: URLSearchParams sorting is critical for SigV4
+        const canonicalRequest = [
+            "GET",
+            url.pathname,
+            (url.searchParams.sort(), url.searchParams.toString()),
+            canonicalHeaders,
+            signedHeaders,
+            "UNSIGNED-PAYLOAD"
+        ].join("\n");
+
+        // String to Sign
+        const stringToSign = [
+            "AWS4-HMAC-SHA256",
+            datetime,
+            credentialScope,
+            toHex(await sha256(canonicalRequest))
+        ].join("\n");
+
+        // Signature
+        const kDate = await hmac(encoder.encode(`AWS4${this.secretAccessKey}`), date);
+        const kRegion = await hmac(kDate, this.region);
+        const kService = await hmac(kRegion, this.service);
+        const kSigning = await hmac(kService, "aws4_request");
+        const signature = toHex(await hmac(kSigning, stringToSign));
+
+        url.searchParams.set("X-Amz-Signature", signature);
+
+        return url.toString();
+    }
 }
+```
