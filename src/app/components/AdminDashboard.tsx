@@ -34,6 +34,8 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
     const [editThumbnailBlob, setEditThumbnailBlob] = useState<Blob | null>(null);
     const [editThumbnailPreviewUrl, setEditThumbnailPreviewUrl] = useState<string | null>(null);
     const editVideoPreviewRef = useRef<HTMLVideoElement>(null);
+    const hiddenCaptureVideoRef = useRef<HTMLVideoElement>(null); // For CORS capture
+    const [captureLoading, setCaptureLoading] = useState(false);
 
     // User Management State
     const [newUser, setNewUser] = useState({ username: '', password: '' });
@@ -214,37 +216,70 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         setEditThumbnailPreviewUrl(null);
     };
 
-    const handleCaptureEditThumbnail = (e: React.MouseEvent) => {
+    const handleCaptureEditThumbnail = async (e: React.MouseEvent) => {
         e.preventDefault();
-        const video = editVideoPreviewRef.current;
-        const canvas = canvasRef.current; // Reuse the same canvas ref
+        const mainVideo = editVideoPreviewRef.current;
+        const hiddenVideo = hiddenCaptureVideoRef.current;
+        const canvas = canvasRef.current;
 
-        if (!video || !canvas) return;
+        if (!mainVideo || !hiddenVideo || !canvas) return;
 
         try {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            setCaptureLoading(true);
+
+            // Sync hidden video source and time
+            hiddenVideo.src = mainVideo.src;
+            hiddenVideo.currentTime = mainVideo.currentTime;
+
+            // Wait for seek/load
+            await new Promise<void>((resolve, reject) => {
+                const onSeeked = () => {
+                    cleanup();
+                    resolve();
+                };
+                const onError = (e: Event | string) => {
+                    cleanup();
+                    reject(new Error('Video load failed'));
+                };
+
+                const cleanup = () => {
+                    hiddenVideo.removeEventListener('seeked', onSeeked);
+                    hiddenVideo.removeEventListener('error', onError);
+                    hiddenVideo.removeEventListener('loadeddata', onSeeked);
+                };
+
+                hiddenVideo.addEventListener('seeked', onSeeked);
+                hiddenVideo.addEventListener('error', onError);
+
+                // If already ready
+                if (hiddenVideo.readyState >= 2) resolve();
+            });
+
+            // Draw
+            canvas.width = hiddenVideo.videoWidth;
+            canvas.height = hiddenVideo.videoHeight;
             const ctx = canvas.getContext('2d');
 
             if (ctx) {
-                // This line will throw if the canvas is tainted (CORS error)
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height);
 
                 canvas.toBlob((blob) => {
                     if (blob) {
                         setEditThumbnailBlob(blob);
-                        // If previous preview was a blob URL, revoke it
                         if (editThumbnailPreviewUrl && editThumbnailPreviewUrl !== editingVideo?.thumbnail) {
                             URL.revokeObjectURL(editThumbnailPreviewUrl);
                         }
                         setEditThumbnailPreviewUrl(URL.createObjectURL(blob));
+                        setCaptureLoading(false);
+                    } else {
+                        throw new Error('Canvas toBlob failed');
                     }
                 }, 'image/jpeg', 0.85);
             }
         } catch (error: any) {
             console.error('Thumbnail capture error:', error);
-            // Inform user about potential CORS issues
-            alert(`サムネイルの作成に失敗しました。\nエラー: ${error.message || '不明なエラー'}\n\n※ セキュリティ設定(CORS)の影響の可能性があります。時間を置いてから再読み込みしてください。`);
+            setCaptureLoading(false);
+            alert(`サムネイルの作成に失敗しました。\nエラー: ${error.message || 'SecurityError'}\n\n※ セキュリティ設定(CORS)により、この動画からのキャプチャが許可されていない可能性があります。`);
         }
     };
 
@@ -263,7 +298,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
 
             const res = await fetch(`/api/videos/${editingVideo.id}`, {
                 method: 'PUT',
-                body: data // Fetch handles Content-Type for FormData automatically
+                body: data
             });
 
             if (res.ok) {
@@ -553,18 +588,31 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                 <div style={{ border: '1px solid #ddd', padding: '15px', borderRadius: 'var(--radius-md)' }}>
                                     <p style={{ marginBottom: '10px', fontSize: '0.9rem' }}>動画から新しいサムネイルを作成できます</p>
 
+                                    {/* Main Video for Playback (No CORS) */}
                                     <video
-                                        key={editingVideo.id} // Force remount when video changes
+                                        key={editingVideo.id}
                                         ref={editVideoPreviewRef}
                                         controls
                                         playsInline
-                                        crossOrigin="anonymous" // Important for canvas capture
-                                        src={editingVideo.url}
+                                        src={editingVideo.url} // Standard load, no CORS issues
                                         style={{ width: '100%', height: 'auto', aspectRatio: '16/9', backgroundColor: '#000', marginBottom: '10px', display: 'block' }}
                                     />
+
+                                    {/* Hidden Video for Capture (CORS Enabled) */}
+                                    <video
+                                        ref={hiddenCaptureVideoRef}
+                                        crossOrigin="anonymous"
+                                        style={{ display: 'none' }}
+                                    />
+
                                     <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                                        <button onClick={handleCaptureEditThumbnail} type="button" style={{ padding: '8px 16px', background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                                            📸 画面をキャプチャして変更
+                                        <button
+                                            onClick={handleCaptureEditThumbnail}
+                                            type="button"
+                                            disabled={captureLoading}
+                                            style={{ padding: '8px 16px', background: captureLoading ? '#ccc' : 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                        >
+                                            {captureLoading ? '処理中...' : '📸 画面をキャプチャして変更'}
                                         </button>
                                     </div>
 
