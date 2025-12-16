@@ -1,10 +1,8 @@
-
 import { NextResponse } from 'next/server';
 import { getSettings, saveSettings } from '@/lib/settings';
 import { cookies } from 'next/headers';
 
 // GET: Retrieve settings (Masked for security)
-export const runtime = 'edge';
 
 export async function GET() {
     const token = (await cookies()).get('auth_token');

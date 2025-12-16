@@ -3,8 +3,6 @@ import { notFound } from 'next/navigation';
 import VideoPlayer from '@/app/components/VideoPlayer';
 import Link from 'next/link';
 
-export const runtime = 'edge';
-
 export default async function WatchPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const { id } = params;
