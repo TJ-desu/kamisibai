@@ -126,7 +126,7 @@ export class AwsClient {
         return request;
     }
 
-    async getPresignedUrl(urlStr: string, expiresIn: number = 3600): Promise<string> {
+    async getPresignedUrl(urlStr: string, expiresIn: number = 3600, method: string = "GET"): Promise<string> {
         const url = new URL(urlStr);
         const now = new Date();
         const datetime = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
@@ -149,7 +149,7 @@ export class AwsClient {
         // Canonical Request
         // Note: URLSearchParams sorting is critical for SigV4
         const canonicalRequest = [
-            "GET",
+            method,
             url.pathname,
             (url.searchParams.sort(), url.searchParams.toString()),
             canonicalHeaders,

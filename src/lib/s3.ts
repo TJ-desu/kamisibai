@@ -125,3 +125,22 @@ export async function signVideoUrls(videos: Video[]): Promise<Video[]> {
 
     return signedVideos;
 }
+
+export async function getPresignedUploadUrl(key: string, contentType: string): Promise<string | null> {
+    const settings = getSettings();
+    const { accessKeyId, secretAccessKey, region, bucketName } = settings.aws;
+
+    if (!accessKeyId || !secretAccessKey || !region || !bucketName) return null;
+
+    const client = new AwsClient({
+        accessKeyId,
+        secretAccessKey,
+        region,
+        service: 's3',
+    });
+
+    const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${encodedKey}`;
+
+    return client.getPresignedUrl(url, 3600, 'PUT');
+}

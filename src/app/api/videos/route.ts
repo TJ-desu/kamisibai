@@ -38,27 +38,36 @@ export async function POST(request: Request) {
         const title = formData.get('title') as string;
         const description = formData.get('description') as string;
         const tagsString = formData.get('tags') as string;
-        const file = formData.get('file') as File;
+        const file = formData.get('file') as File | null;
+        const videoUrl = formData.get('videoUrl') as string;
 
-        if (!title || !file) {
+        if (!title || (!file && !videoUrl)) {
             return NextResponse.json(
-                { message: 'Title and File are required' },
+                { message: 'Title and File (or Video URL) are required' },
                 { status: 400 }
             );
         }
 
-        // Save file
-        const buffer = await file.arrayBuffer();
-        const ext = file.name.split('.').pop()?.substring(0, 10).replace(/[^a-z0-9]/gi, '') || 'bin';
-        const randomId = crypto.randomUUID();
-        const filename = `videos/${randomId}.${ext}`;
+        // Save file (if not provided via URL)
+        let url = videoUrl || '';
+        let ext = 'bin';
 
-        let url = '';
+        if (file && !videoUrl) {
+            const buffer = await file.arrayBuffer();
+            ext = file.name.split('.').pop()?.substring(0, 10).replace(/[^a-z0-9]/gi, '') || 'bin';
+            const randomId = crypto.randomUUID();
+            const filename = `videos/${randomId}.${ext}`;
+
+            const { uploadFileToS3 } = await import('@/lib/s3');
+            url = await uploadFileToS3(buffer, filename, file.type);
+        }
+
         let thumbnailUrl = `https://placehold.co/600x400/b1a08a/ffffff?text=${encodeURIComponent(title)}`;
 
         try {
             const { uploadFileToS3 } = await import('@/lib/s3');
-            url = await uploadFileToS3(buffer, filename, file.type);
+            // Thumbnail handling remains same
+
 
             const thumbnailFile = formData.get('thumbnail') as File | null;
             if (thumbnailFile) {

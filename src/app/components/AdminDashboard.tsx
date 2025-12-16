@@ -120,57 +120,76 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         setUploadProgress(0);
 
         try {
+            // Step 1: Get Presigned URL
+            const presignRes = await fetch('/api/upload/presigned', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, contentType: file.type })
+            });
+
+            if (!presignRes.ok) {
+                const err = await presignRes.json();
+                throw new Error(err.message || 'Failed to get upload URL');
+            }
+
+            const { url: uploadUrl, accessUrl } = await presignRes.json();
+
+            // Step 2: Upload to S3 (Directly)
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', uploadUrl);
+                xhr.setRequestHeader('Content-Type', file.type);
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        setUploadProgress(percentComplete);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error(`S3 Upload Failed: ${xhr.statusText}`));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error('Network Error during S3 Upload'));
+                xhr.send(file);
+            });
+
+            // Step 3: Save Metadata (Video is already on S3)
             const data = new FormData();
             data.append('title', formData.title);
             data.append('description', formData.description);
             data.append('tags', formData.tags);
-            data.append('file', file);
+            data.append('videoUrl', accessUrl); // Pass the public S3 URL
+            // Note: We do NOT append 'file' here to avoid sending it to Next.js
+
             if (thumbnailBlob) {
                 data.append('thumbnail', thumbnailBlob, 'thumbnail.jpg');
             }
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/videos');
+            const res = await fetch('/api/videos', {
+                method: 'POST',
+                body: data
+            });
 
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percentComplete = Math.round((event.loaded / event.total) * 100);
-                    setUploadProgress(percentComplete);
-                }
-            };
-
-            xhr.onload = async () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    alert('動画を追加しました！');
-                    setFormData({ title: '', description: '', tags: '' });
-                    setFile(null);
-                    setThumbnailBlob(null);
-                    if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
-                    setThumbnailPreviewUrl(null);
-                    setUploadProgress(0);
-                    setLoading(false);
-                    router.refresh();
-                } else {
-                    let errorMessage = '不明なエラーが発生しました';
-                    try {
-                        const errorData = JSON.parse(xhr.responseText);
-                        errorMessage = errorData.s3Error || errorData.details || errorData.message || errorMessage;
-                    } catch (e) {
-                        errorMessage = xhr.statusText;
-                    }
-                    console.error('Upload Error:', errorMessage);
-                    alert(`アップロードに失敗しました (Server):\n${errorMessage}\n${xhr.status}`);
-                    setLoading(false);
-                }
-            };
-
-            xhr.onerror = () => {
-                console.error('Network Error');
-                alert('通信エラーが発生しました (Network)');
+            if (res.ok) {
+                alert('動画を追加しました！');
+                setFormData({ title: '', description: '', tags: '' });
+                setFile(null);
+                setThumbnailBlob(null);
+                if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
+                setThumbnailPreviewUrl(null);
+                setUploadProgress(0);
                 setLoading(false);
-            };
-
-            xhr.send(data);
+                router.refresh();
+            } else {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Metadata save failed');
+            }
 
         } catch (error: any) {
             console.error(error);
