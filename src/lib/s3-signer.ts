@@ -177,4 +177,3 @@ export class AwsClient {
         return url.toString();
     }
 }
-```
