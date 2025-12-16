@@ -12,6 +12,7 @@ export interface Video {
     title: string;
     description: string;
     tags: string[];
+    url: string;
     thumbnail?: string;
     uploaderId?: string; // ID of the user who uploaded the video
     viewCount?: number;

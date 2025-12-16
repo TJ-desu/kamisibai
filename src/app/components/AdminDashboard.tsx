@@ -242,7 +242,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         <div className="container" style={{ padding: '40px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <h1 style={{ color: 'var(--primary-color)' }}>
-                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.1</span>
+                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.1.1</span>
                 </h1>
                 <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff' }}>
                     ログアウト
