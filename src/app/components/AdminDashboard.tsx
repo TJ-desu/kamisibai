@@ -13,33 +13,41 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ user, initialVideos, initialUsers }: AdminDashboardProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'upload' | 'users' | 'videos'>('upload');
-    const [newUser, setNewUser] = useState({ username: '', password: '' });
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        tags: ''
-    });
 
+    // Upload State
+    const [formData, setFormData] = useState({ title: '', description: '', tags: '' });
     const [file, setFile] = useState<File | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const inputRef = useRef<HTMLInputElement>(null);
 
+    // Thumbnail State
     const videoPreviewRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [thumbnailBlob, setThumbnailBlob] = useState<Blob | null>(null);
     const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
 
-    // Filter videos for Editor (only their own)
-    // Note: For prototype, existing videos might have 'admin' or null.
-    // If editor, we only show where uploaderId matches, OR allow seeing all but editing none?
-    // Requirement says: "Editor... upload own video and see view count". Implies seeing own list.
+    // Edit State
+    const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+    const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
+
+    // User Management State
+    const [newUser, setNewUser] = useState({ username: '', password: '' });
+
+    // Filter videos for Editor
     const myVideos = user.role === 'admin' ? initialVideos : initialVideos.filter(v => v.uploaderId === user.id);
 
-    const handleTabChange = (tab: 'upload' | 'users' | 'videos') => {
-        setActiveTab(tab);
+    // --- Helpers ---
+    const handleTabChange = (tab: 'upload' | 'users' | 'videos') => setActiveTab(tab);
+
+    const handleLogout = async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        router.push('/login');
+        router.refresh();
     };
 
+    // --- Upload Logic ---
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -69,7 +77,6 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setFile(file);
-            // Reset thumbnail when new file matches
             setThumbnailBlob(null);
             if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
             setThumbnailPreviewUrl(null);
@@ -105,69 +112,69 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         }
 
         setLoading(true);
+        setUploadProgress(0);
+
         try {
             const data = new FormData();
             data.append('title', formData.title);
             data.append('description', formData.description);
             data.append('tags', formData.tags);
-
             data.append('file', file);
             if (thumbnailBlob) {
                 data.append('thumbnail', thumbnailBlob, 'thumbnail.jpg');
             }
 
-            // Uploader ID is handled by server from cookie, or we pass it?
-            // Better to let server read cookie. But for simplicity here?
-            // Let's rely on server reading cookie.
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/videos');
 
-            const res = await fetch('/api/videos', { method: 'POST', body: data });
-            if (res.ok) {
-                alert('動画を追加しました！');
-                setFormData({ title: '', description: '', tags: '' });
-                setFile(null);
-                setThumbnailBlob(null);
-                if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
-                setThumbnailPreviewUrl(null);
-                router.refresh();
-            } else {
-                const errorData = await res.json();
-                console.error('Upload Error Data:', errorData);
-                const errorMessage = errorData.s3Error || errorData.details || errorData.message || '不明なエラーが発生しました';
-                alert(`アップロードに失敗しました (Server):\n${errorMessage}`);
-            }
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    setUploadProgress(percentComplete);
+                }
+            };
+
+            xhr.onload = async () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    alert('動画を追加しました！');
+                    setFormData({ title: '', description: '', tags: '' });
+                    setFile(null);
+                    setThumbnailBlob(null);
+                    if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
+                    setThumbnailPreviewUrl(null);
+                    setUploadProgress(0);
+                    setLoading(false);
+                    router.refresh();
+                } else {
+                    let errorMessage = '不明なエラーが発生しました';
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        errorMessage = errorData.s3Error || errorData.details || errorData.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = xhr.statusText;
+                    }
+                    console.error('Upload Error:', errorMessage);
+                    alert(`アップロードに失敗しました (Server):\n${errorMessage}\n${xhr.status}`);
+                    setLoading(false);
+                }
+            };
+
+            xhr.onerror = () => {
+                console.error('Network Error');
+                alert('通信エラーが発生しました (Network)');
+                setLoading(false);
+            };
+
+            xhr.send(data);
+
         } catch (error: any) {
             console.error(error);
-            alert(`通信エラーが発生しました (Network):\n${error.message || error}`);
-        } finally {
+            alert(`エラーが発生しました:\n${error.message || error}`);
             setLoading(false);
         }
     };
 
-    const handleCreateUser = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newUser.username || !newUser.password) return;
-
-        try {
-            const res = await fetch('/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newUser)
-            });
-            if (res.ok) {
-                alert('編集者を作成しました');
-                setNewUser({ username: '', password: '' });
-                router.refresh();
-            } else {
-                const data = await res.json();
-                alert(data.message || 'エラーが発生しました');
-            }
-        } catch (error) {
-            alert('エラーが発生しました');
-        }
-    };
-
-
-
+    // --- Edit/Delete Logic ---
     const handleDeleteVideo = async (id: string) => {
         if (!confirm('本当に削除しますか？')) return;
         try {
@@ -182,16 +189,6 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             alert('エラーが発生しました');
         }
     };
-
-    const handleLogout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        router.push('/login');
-        router.refresh();
-    };
-
-    // --- Editing Logic ---
-    const [editingVideo, setEditingVideo] = useState<Video | null>(null);
-    const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
 
     const openEditModal = (video: Video) => {
         setEditingVideo(video);
@@ -228,6 +225,30 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             }
         } catch (error) {
             console.error(error);
+            alert('エラーが発生しました');
+        }
+    };
+
+    // --- User Management Logic ---
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newUser.username || !newUser.password) return;
+
+        try {
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            });
+            if (res.ok) {
+                alert('編集者を作成しました');
+                setNewUser({ username: '', password: '' });
+                router.refresh();
+            } else {
+                const data = await res.json();
+                alert(data.message || 'エラーが発生しました');
+            }
+        } catch (error) {
             alert('エラーが発生しました');
         }
     };
@@ -270,7 +291,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 )}
             </div>
 
-            {/* Content */}
+            {/* Content: Upload */}
             {activeTab === 'upload' && (
                 <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--white)', padding: '30px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-soft)' }}>
                     <h2 style={{ marginBottom: '20px' }}>動画を追加</h2>
@@ -330,11 +351,45 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                             </div>
                         )}
 
-                        <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'アップロード中...' : '動画を追加する'}</button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: loading ? '#ccc' : 'var(--primary-color)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '1.1rem',
+                                marginTop: '10px'
+                            }}
+                        >
+                            {loading ? 'アップロード中...' : '動画を公開する'}
+                        </button>
                     </form>
+
+                    {/* Progress Bar */}
+                    {loading && uploadProgress > 0 && (
+                        <div style={{ marginTop: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                <span style={{ fontSize: '0.85rem', color: '#666' }}>アップロード中...</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{uploadProgress}%</span>
+                            </div>
+                            <div style={{ width: '100%', height: '10px', backgroundColor: '#e0e0e0', borderRadius: '5px', overflow: 'hidden' }}>
+                                <div style={{
+                                    width: `${uploadProgress}%`,
+                                    height: '100%',
+                                    backgroundColor: 'var(--primary-color)',
+                                    transition: 'width 0.2s ease'
+                                }} />
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
+            {/* Content: Videos */}
             {activeTab === 'videos' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                     {myVideos.map(video => (
@@ -350,7 +405,9 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                     編集
                                 </button>
                                 {user.role === 'admin' && (
-                                    <button onClick={() => handleDeleteVideo(video.id)} style={{ padding: '5px 10px', background: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '4px' }}>削除</button>
+                                    <button onClick={() => {
+                                        if (confirm('本当に削除しますか？')) handleDeleteVideo(video.id);
+                                    }} style={{ padding: '5px 10px', background: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '4px' }}>削除</button>
                                 )}
                             </div>
                         </div>
@@ -359,6 +416,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 </div>
             )}
 
+            {/* Content: Users */}
             {activeTab === 'users' && user.role === 'admin' && (
                 <div style={{ maxWidth: '800px', margin: '0 auto' }}>
                     <div style={{ background: 'var(--white)', padding: '30px', borderRadius: 'var(--radius-lg)', marginBottom: '30px', boxShadow: 'var(--shadow-soft)' }}>
@@ -399,12 +457,10 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                         maxHeight: '90vh', overflowY: 'auto'
                     }}>
                         <h2 style={{ marginBottom: '20px' }}>動画情報を編集</h2>
-                        {editingVideo && (
-                            <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px', fontSize: '0.9rem' }}>
-                                <p><strong>アップロード者:</strong> {initialUsers.find(u => u.id === editingVideo.uploaderId)?.username || '不明'}</p>
-                                <p style={{ color: '#666', fontSize: '0.8rem' }}>ID: {editingVideo.uploaderId}</p>
-                            </div>
-                        )}
+                        <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px', fontSize: '0.9rem' }}>
+                            <p><strong>アップロード者:</strong> {initialUsers.find(u => u.id === editingVideo.uploaderId)?.username || '不明'}</p>
+                            <p style={{ color: '#666', fontSize: '0.8rem' }}>ID: {editingVideo.uploaderId}</p>
+                        </div>
                         <form onSubmit={handleUpdateVideo} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>タイトル</label>
