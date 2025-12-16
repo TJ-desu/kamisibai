@@ -31,6 +31,9 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
     // Edit State
     const [editingVideo, setEditingVideo] = useState<Video | null>(null);
     const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
+    const [editThumbnailBlob, setEditThumbnailBlob] = useState<Blob | null>(null);
+    const [editThumbnailPreviewUrl, setEditThumbnailPreviewUrl] = useState<string | null>(null);
+    const editVideoPreviewRef = useRef<HTMLVideoElement>(null);
 
     // User Management State
     const [newUser, setNewUser] = useState({ username: '', password: '' });
@@ -197,11 +200,42 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             description: video.description,
             tags: video.tags.join(',')
         });
+        setEditThumbnailBlob(null);
+        setEditThumbnailPreviewUrl(video.thumbnail || null);
     };
 
     const closeEditModal = () => {
         setEditingVideo(null);
         setEditForm({ title: '', description: '', tags: '' });
+        setEditThumbnailBlob(null);
+        if (editThumbnailPreviewUrl && editThumbnailPreviewUrl !== editingVideo?.thumbnail) {
+            URL.revokeObjectURL(editThumbnailPreviewUrl);
+        }
+        setEditThumbnailPreviewUrl(null);
+    };
+
+    const handleCaptureEditThumbnail = (e: React.MouseEvent) => {
+        e.preventDefault();
+        const video = editVideoPreviewRef.current;
+        const canvas = canvasRef.current; // Reuse the same canvas ref
+        if (video && canvas) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        setEditThumbnailBlob(blob);
+                        // If previous preview was a blob URL, revoke it
+                        if (editThumbnailPreviewUrl && editThumbnailPreviewUrl !== editingVideo?.thumbnail) {
+                            URL.revokeObjectURL(editThumbnailPreviewUrl);
+                        }
+                        setEditThumbnailPreviewUrl(URL.createObjectURL(blob));
+                    }
+                }, 'image/jpeg', 0.85);
+            }
+        }
     };
 
     const handleUpdateVideo = async (e: React.FormEvent) => {
@@ -209,10 +243,17 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         if (!editingVideo) return;
 
         try {
+            const data = new FormData();
+            data.append('title', editForm.title);
+            data.append('description', editForm.description);
+            data.append('tags', editForm.tags);
+            if (editThumbnailBlob) {
+                data.append('thumbnail', editThumbnailBlob, 'thumbnail.jpg');
+            }
+
             const res = await fetch(`/api/videos/${editingVideo.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editForm)
+                body: data // Fetch handles Content-Type for FormData automatically
             });
 
             if (res.ok) {
@@ -257,7 +298,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         <div className="container" style={{ padding: '40px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <h1 style={{ color: 'var(--primary-color)' }}>
-                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.2.3</span>
+                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.3.0</span>
                 </h1>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={() => window.location.reload()} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -344,6 +385,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                         </button>
                                     </div>
 
+                                    {/* Shared Canvas */}
                                     <canvas ref={canvasRef} style={{ display: 'none' }} />
 
                                     {thumbnailPreviewUrl && (
@@ -493,6 +535,37 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                     onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
                                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
                                 />
+                            </div>
+
+                            {/* Thumbnail Editing Section */}
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>サムネイル</label>
+                                <div style={{ border: '1px solid #ddd', padding: '15px', borderRadius: 'var(--radius-md)' }}>
+                                    <p style={{ marginBottom: '10px', fontSize: '0.9rem' }}>動画から新しいサムネイルを作成できます</p>
+
+                                    <video
+                                        ref={editVideoPreviewRef}
+                                        controls
+                                        src={editingVideo.url} // Load video from URL
+                                        crossOrigin="anonymous" // Important for canvas capture if on different domain
+                                        style={{ width: '100%', maxHeight: '300px', backgroundColor: '#000', marginBottom: '10px' }}
+                                    />
+                                    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                                        <button onClick={handleCaptureEditThumbnail} type="button" style={{ padding: '8px 16px', background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                                            📸 画面をキャプチャして変更
+                                        </button>
+                                    </div>
+
+                                    {(editThumbnailPreviewUrl) && (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>▼ {editThumbnailBlob ? '変更後のサムネイル' : '現在のサムネイル'}</p>
+                                            <img src={editThumbnailPreviewUrl} alt="Thumbnail Preview" style={{ maxWidth: '200px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                                            {editThumbnailBlob && (
+                                                <p style={{ fontSize: '0.8rem', color: 'green', marginTop: '5px' }}>※ 更新ボタンを押すと反映されます</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
