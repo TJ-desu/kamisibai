@@ -46,3 +46,42 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
 
     return url;
 }
+
+export async function putJSON(key: string, data: any): Promise<void> {
+    const jsonString = JSON.stringify(data);
+    const buffer = new TextEncoder().encode(jsonString);
+    await uploadFileToS3(buffer, key, 'application/json');
+}
+
+export async function getJSON<T>(key: string): Promise<T | null> {
+    const settings = getSettings();
+    const { accessKeyId, secretAccessKey, region, bucketName } = settings.aws;
+
+    if (!accessKeyId || !secretAccessKey || !region || !bucketName) return null;
+
+    const client = new AwsClient({
+        accessKeyId,
+        secretAccessKey,
+        region,
+        service: 's3',
+    });
+
+    const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${encodedKey}`;
+
+    const request = new Request(url, {
+        method: 'GET',
+    });
+
+    const signedRequest = await client.sign(request);
+    const response = await fetch(signedRequest);
+
+    if (response.status === 404) return null;
+
+    if (!response.ok) {
+        console.warn('Failed to fetch JSON from S3:', response.status, response.statusText);
+        return null;
+    }
+
+    return response.json();
+}

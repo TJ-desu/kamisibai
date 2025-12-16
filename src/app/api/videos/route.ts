@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 export const runtime = 'edge';
 
 export async function GET() {
-    const videos = getVideos();
+    const videos = await getVideos();
     return NextResponse.json(videos);
 }
 
@@ -76,9 +76,9 @@ export async function POST(request: Request) {
             summary: summary.slice(0, 140)
         };
 
-        const videos = getVideos();
+        const videos = await getVideos();
         videos.push(newVideo);
-        saveVideos(videos);
+        await saveVideos(videos);
 
         return NextResponse.json(newVideo, { status: 201 });
     } catch (error: any) {

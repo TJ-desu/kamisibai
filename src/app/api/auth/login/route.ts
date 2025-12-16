@@ -8,7 +8,7 @@ export const runtime = 'edge';
 export async function POST(request: Request) {
     try {
         const { username, password } = await request.json();
-        const users = getUsers();
+        const users = await getUsers();
 
         const user = users.find(u => u.username === username && u.password === password);
 

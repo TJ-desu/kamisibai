@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    const users = getUsers();
+    const users = await getUsers();
     // Don't return passwords
     const safeUsers = users.map(({ password, ...u }) => u);
     return NextResponse.json(safeUsers);
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     try {
         const { username, password } = await request.json();
-        const users = getUsers();
+        const users = await getUsers();
 
         if (users.find(u => u.username === username)) {
             return NextResponse.json({ success: false, message: 'Username already exists' }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         };
 
         users.push(newUser);
-        saveUsers(users);
+        await saveUsers(users);
 
         return NextResponse.json({ success: true, user: { id: newUser.id, username, role: 'editor' } });
     } catch (error) {

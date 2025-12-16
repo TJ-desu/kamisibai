@@ -20,13 +20,13 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
     const { id } = params;
     if (!id) return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
 
-    const videos = getVideos();
+    const videos = await getVideos();
     const newVideos = videos.filter(v => v.id !== id);
 
     if (videos.length === newVideos.length) {
         return NextResponse.json({ message: 'Video not found' }, { status: 404 });
     }
 
-    saveVideos(newVideos);
+    await saveVideos(newVideos);
     return NextResponse.json({ success: true });
 }

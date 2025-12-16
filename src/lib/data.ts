@@ -2,27 +2,64 @@
 import { Video, User } from '@/types';
 import videosData from '../data/videos.json';
 import usersData from '../data/users.json';
+import { getJSON, putJSON } from './s3';
 
 // In-memory cache to allow temporary changes during runtime
-let videosCache: Video[] = [...(videosData as Video[])];
-let usersCache: User[] = [...(usersData as User[])];
+let videosCache: Video[] | null = null;
+let usersCache: User[] | null = null;
 
-export function getVideos(): Video[] {
+const VIDEOS_KEY = 'data/videos.json';
+const USERS_KEY = 'data/users.json';
+
+export async function getVideos(): Promise<Video[]> {
+    if (videosCache) return videosCache;
+
+    try {
+        const s3Data = await getJSON<Video[]>(VIDEOS_KEY);
+        if (s3Data) {
+            videosCache = s3Data;
+            return s3Data;
+        }
+    } catch (e) {
+        console.warn('Error fetching videos from S3, falling back to default', e);
+    }
+
+    // Fallback to default entries if S3 is empty or fails
+    videosCache = [...(videosData as Video[])];
     return videosCache;
 }
 
-export function saveVideos(videos: Video[]) {
-    // In Edge environment, we cannot write to the filesystem.
-    // For now, update the in-memory cache so it persists for the lifetime of the instance.
+export async function saveVideos(videos: Video[]) {
     videosCache = videos;
-    console.warn('Persistence warning: saveVideos is in-memory only on Edge Runtime.');
+    try {
+        await putJSON(VIDEOS_KEY, videos);
+    } catch (e) {
+        console.error('Failed to save videos to S3', e);
+    }
 }
 
-export function getUsers(): User[] {
+export async function getUsers(): Promise<User[]> {
+    if (usersCache) return usersCache;
+
+    try {
+        const s3Data = await getJSON<User[]>(USERS_KEY);
+        if (s3Data) {
+            usersCache = s3Data;
+            return s3Data;
+        }
+    } catch (e) {
+        console.warn('Error fetching users from S3, falling back to default', e);
+    }
+
+    usersCache = [...(usersData as User[])];
     return usersCache;
 }
 
-export function saveUsers(users: User[]) {
+export async function saveUsers(users: User[]) {
     usersCache = users;
-    console.warn('Persistence warning: saveUsers is in-memory only on Edge Runtime.');
+    try {
+        await putJSON(USERS_KEY, users);
+    } catch (e) {
+        console.error('Failed to save users to S3', e);
+    }
 }
