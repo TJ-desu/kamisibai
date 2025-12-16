@@ -13,6 +13,7 @@
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "@prisma/client": "^6.0.0",
     "uuid": "^11.0.0"
   },
   "devDependencies": {
@@ -23,6 +24,8 @@
     "@types/uuid": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.0.3",
+    "prisma": "^6.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

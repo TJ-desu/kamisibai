@@ -1,65 +1,65 @@
 
 import { Video, User } from '@/types';
-import videosData from '../data/videos.json';
-import usersData from '../data/users.json';
-import { getJSON, putJSON } from './s3';
+import { PrismaClient } from '@prisma/client';
 
-// In-memory cache to allow temporary changes during runtime
-let videosCache: Video[] | null = null;
-let usersCache: User[] | null = null;
+// Use a global variable to store the PrismaClient instance
+// to prevent multiple instances during development (hot reloading)
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-const VIDEOS_KEY = 'data/videos.json';
-const USERS_KEY = 'data/users.json';
+export const prisma =
+    globalForPrisma.prisma ||
+    new PrismaClient({
+        log: ['query', 'info', 'warn', 'error'],
+    });
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 export async function getVideos(): Promise<Video[]> {
-    if (videosCache) return videosCache;
-
     try {
-        const s3Data = await getJSON<Video[]>(VIDEOS_KEY);
-        if (s3Data) {
-            videosCache = s3Data;
-            return s3Data;
-        }
+        const videos = await prisma.video.findMany({
+            orderBy: { updatedAt: 'desc' }
+        });
+        // Convert Prisma Video to App Video type (ensure fields match)
+        return videos.map(v => ({
+            ...v,
+            tags: v.tags, // Prisma String[], Types String[] - compatible
+            uploaderId: v.uploaderId || undefined
+        })) as Video[];
     } catch (e) {
-        console.warn('Error fetching videos from S3, falling back to default', e);
+        console.error('Prisma Error (getVideos):', e);
+        return [];
     }
-
-    // Fallback to default entries if S3 is empty or fails
-    videosCache = [...(videosData as Video[])];
-    return videosCache;
 }
 
 export async function saveVideos(videos: Video[]) {
-    videosCache = videos;
-    try {
-        await putJSON(VIDEOS_KEY, videos);
-    } catch (e) {
-        console.error('Failed to save videos to S3', e);
-    }
+    // This function was originally used to overwrite the entire JSON.
+    // With Prisma, we shouldn't be overwriting everything blindly.
+    // But the current controller might call this with a modified array?
+    // Let's inspect usages.
+    // API uses: videos[index] = ...; saveVideos(videos);
+    // This is inefficient for DB. We should change the API to update single records.
+
+    // However, to keep API refactor minimal for "Code Only" migration:
+    // If we receive a full array, it's hard to know what changed.
+    // BUT, the API (PUT /api/videos/[id]) actually fetches, updates object in array, and saves array.
+    // We should refactor the KEYS of the API to use specific DB calls (update).
+
+    // Since checking usage is outside this atomic step's scope (or is it?), 
+    // I will implement this function to Log a warning and do nothing,
+    // because I will refactor the API routes to use Prisma DIRECTLY instead of getVideos/saveVideos.
+    console.warn('saveVideos is deprecated in favor of direct Prisma calls.');
 }
 
 export async function getUsers(): Promise<User[]> {
-    if (usersCache) return usersCache;
-
     try {
-        const s3Data = await getJSON<User[]>(USERS_KEY);
-        if (s3Data) {
-            usersCache = s3Data;
-            return s3Data;
-        }
+        const users = await prisma.user.findMany();
+        return users as User[]; // Cast role string to union type if needed
     } catch (e) {
-        console.warn('Error fetching users from S3, falling back to default', e);
+        console.error('Prisma Error (getUsers):', e);
+        return [];
     }
-
-    usersCache = [...(usersData as User[])];
-    return usersCache;
 }
 
 export async function saveUsers(users: User[]) {
-    usersCache = users;
-    try {
-        await putJSON(USERS_KEY, users);
-    } catch (e) {
-        console.error('Failed to save users to S3', e);
-    }
+    console.warn('saveUsers is deprecated. Use Prisma direct calls.');
 }

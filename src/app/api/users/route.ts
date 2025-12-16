@@ -1,10 +1,10 @@
 
 import { NextResponse } from 'next/server';
-import { getUsers, saveUsers } from '@/lib/data';
+import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 
-export const runtime = 'edge';
+// Removed runtime = 'edge'
 
 // GET: List all users (Admin only)
 export async function GET(request: Request) {
@@ -16,10 +16,14 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    const users = await getUsers();
-    // Don't return passwords
-    const safeUsers = users.map(({ password, ...u }) => u);
-    return NextResponse.json(safeUsers);
+    try {
+        const users = await prisma.user.findMany();
+        // Don't return passwords
+        const safeUsers = users.map(({ password, ...u }) => u);
+        return NextResponse.json(safeUsers);
+    } catch (e) {
+        return NextResponse.json([], { status: 500 });
+    }
 }
 
 // POST: Create a new user (Admin only)
@@ -34,21 +38,20 @@ export async function POST(request: Request) {
 
     try {
         const { username, password } = await request.json();
-        const users = await getUsers();
 
-        if (users.find(u => u.username === username)) {
+        // Check exists
+        const existing = await prisma.user.findUnique({ where: { username } });
+        if (existing) {
             return NextResponse.json({ success: false, message: 'Username already exists' }, { status: 400 });
         }
 
-        const newUser = {
-            id: uuidv4(),
-            username,
-            password, // Storing plain text as requested (prototype)
-            role: 'editor' as const
-        };
-
-        users.push(newUser);
-        await saveUsers(users);
+        const newUser = await prisma.user.create({
+            data: {
+                username,
+                password, // Storing plain text as requested (prototype)
+                role: 'editor'
+            }
+        });
 
         return NextResponse.json({ success: true, user: { id: newUser.id, username, role: 'editor' } });
     } catch (error) {

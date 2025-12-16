@@ -1,14 +1,25 @@
 
 import { NextResponse } from 'next/server';
-import { getVideos, saveVideos } from '@/lib/data';
-import { Video } from '@/types';
+import { prisma } from '@/lib/data';
 import { cookies } from 'next/headers';
 
-export const runtime = 'edge';
+// Removed runtime = 'edge' to support standard Prisma Client in Node environment
 
 export async function GET() {
-    const videos = await getVideos();
-    return NextResponse.json(videos);
+    try {
+        const videos = await prisma.video.findMany({
+            orderBy: { updatedAt: 'desc' }
+        });
+        // Convert to app type if needed, or rely on consistency
+        const mappedVideos = videos.map(v => ({
+            ...v,
+            tags: v.tags,
+            uploaderId: v.uploaderId || undefined
+        }));
+        return NextResponse.json(mappedVideos);
+    } catch (e) {
+        return NextResponse.json([], { status: 500 });
+    }
 }
 
 export async function POST(request: Request) {
@@ -34,22 +45,18 @@ export async function POST(request: Request) {
         }
 
         // Save file
-        const buffer = await file.arrayBuffer(); // Use standard ArrayBuffer
-        // Sanitize filename to strict ASCII to avoid S3 signature issues with specific characters
-        // Use a UUID-like structure + clean extension
+        const buffer = await file.arrayBuffer();
         const ext = file.name.split('.').pop()?.substring(0, 10).replace(/[^a-z0-9]/gi, '') || 'bin';
         const randomId = crypto.randomUUID();
         const filename = `videos/${randomId}.${ext}`;
 
         let url = '';
-        let thumbnailUrl = `https://placehold.co/600x400/b1a08a/ffffff?text=${encodeURIComponent(title)}`; // Default
+        let thumbnailUrl = `https://placehold.co/600x400/b1a08a/ffffff?text=${encodeURIComponent(title)}`;
 
-        // Try S3 first for video
         try {
             const { uploadFileToS3 } = await import('@/lib/s3');
             url = await uploadFileToS3(buffer, filename, file.type);
 
-            // Upload thumbnail if exists
             const thumbnailFile = formData.get('thumbnail') as File | null;
             if (thumbnailFile) {
                 const thumbBuffer = await thumbnailFile.arrayBuffer();
@@ -59,26 +66,30 @@ export async function POST(request: Request) {
             }
 
         } catch (s3Error: any) {
-            console.warn('S3 Upload failed, falling back to local or erroring:', s3Error.message);
+            console.warn('S3 Upload failed:', s3Error.message);
             throw s3Error;
         }
 
-        const newVideo: Video = {
-            id: Date.now().toString(),
-            title,
-            description,
-            tags: tagsString.split(',').map(tag => tag.trim()).filter(Boolean),
-            url: url,
-            thumbnail: thumbnailUrl,
-            viewCount: 0,
-            uploaderId: user.id
+        // Create Video in DB via Prisma
+        const newVideo = await prisma.video.create({
+            data: {
+                title,
+                description,
+                tags: tagsString.split(',').map(tag => tag.trim()).filter(Boolean),
+                url,
+                thumbnail: thumbnailUrl,
+                viewCount: 0,
+                uploaderId: user.id
+            }
+        });
+
+        // Map back to expected interface if necessary (Prisma return matches mostly)
+        const responseVideo = {
+            ...newVideo,
+            uploaderId: newVideo.uploaderId || undefined
         };
 
-        const videos = await getVideos();
-        videos.push(newVideo);
-        await saveVideos(videos);
-
-        return NextResponse.json(newVideo, { status: 201 });
+        return NextResponse.json(responseVideo, { status: 201 });
     } catch (error: any) {
         console.error('Upload Process Error:', error);
         return NextResponse.json(

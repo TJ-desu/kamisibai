@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getUsers } from '@/lib/data';
 import { cookies } from 'next/headers';
 
-export const runtime = 'edge';
+// Removed runtime = 'edge'
 
 export async function POST(request: Request) {
     try {

@@ -1,0 +1,30 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String  @id @default(cuid())
+  username String  @unique
+  password String
+  role     String
+  videos   Video[]
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  tags        String[]
+  url         String
+  thumbnail   String?
+  viewCount   Int      @default(0)
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  uploaderId String?
+  uploader   User?   @relation(fields: [uploaderId], references: [id])
+}
