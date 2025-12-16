@@ -430,8 +430,6 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                         </button>
                                     </div>
 
-                                    {/* Shared Canvas */}
-                                    <canvas ref={canvasRef} style={{ display: 'none' }} />
 
                                     {thumbnailPreviewUrl && (
                                         <div style={{ textAlign: 'center' }}>
@@ -656,6 +654,8 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                     </div>
                 </div>
             )}
+            {/* Shared Canvas (Always rendered for access by refs) */}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
     );
 }
