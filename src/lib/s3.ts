@@ -27,7 +27,7 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
         method: 'PUT',
         headers: {
             'Content-Type': contentType,
-            // 'x-amz-acl': 'public-read', // Optional based on bucket policy
+            'Content-Length': buffer.byteLength.toString(),
         },
         body: buffer as unknown as BodyInit,
     });
@@ -41,7 +41,7 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
     if (!response.ok) {
         const errorText = await response.text();
         console.error('S3 Upload Error:', errorText);
-        throw new Error(`S3 Upload failed: ${response.status} ${response.statusText}`);
+        throw new Error(`S3 Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     return url;
