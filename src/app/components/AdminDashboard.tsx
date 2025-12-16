@@ -434,13 +434,29 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                                <button type="button" onClick={closeEditModal} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ddd', background: '#eee' }}>
-                                    キャンセル
-                                </button>
-                                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>
-                                    更新する
-                                </button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                                {user.role === 'admin' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (confirm('本当に削除しますか？この操作は取り消せません。')) {
+                                                handleDeleteVideo(editingVideo.id);
+                                                closeEditModal();
+                                            }
+                                        }}
+                                        style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#ff4d4d', color: '#fff' }}
+                                    >
+                                        削除
+                                    </button>
+                                )}
+                                <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+                                    <button type="button" onClick={closeEditModal} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ddd', background: '#eee' }}>
+                                        キャンセル
+                                    </button>
+                                    <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>
+                                        更新する
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
