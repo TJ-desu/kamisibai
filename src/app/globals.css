@@ -25,6 +25,10 @@
   margin: 0;
 }
 
+html {
+  overscroll-behavior-y: auto;
+}
+
 body {
   background-color: var(--bg-base);
   color: var(--text-dark);
@@ -32,6 +36,8 @@ body {
   /* Prevent horizontal scroll but allow vertical pull-to-refresh */
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: 100dvh;
+  /* Dynamic viewport height */
   overscroll-behavior-y: auto;
 }
 

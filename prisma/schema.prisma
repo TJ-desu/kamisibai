@@ -9,11 +9,12 @@ generator client {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  username String  @unique
-  password String
-  role     String
-  videos   Video[]
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      String
+  createdAt DateTime @default(now())
+  videos    Video[]
 }
 
 model Video {
@@ -24,6 +25,7 @@ model Video {
   url         String
   thumbnail   String?
   viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
   uploaderId String?

@@ -17,7 +17,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 export async function getVideos(): Promise<Video[]> {
     try {
         const videos = await prisma.video.findMany({
-            orderBy: { updatedAt: 'desc' }
+            orderBy: { createdAt: 'desc' }
         });
         // Convert Prisma Video to App Video type (ensure fields match)
         return videos.map(v => ({
