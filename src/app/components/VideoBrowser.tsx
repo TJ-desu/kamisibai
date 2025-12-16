@@ -139,7 +139,7 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                                     {video.description}
                                 </p>
                                 <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '8px', textAlign: 'right' }}>
-                                    👁️ {video.viewCount || 0} 回視聴
+                                    {video.viewCount || 0} 回視聴
                                 </p>
                             </div>
                         </Link>

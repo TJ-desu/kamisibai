@@ -343,7 +343,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                 <video src={video.url} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
                             </div>
                             <h3 style={{ fontSize: '1.2rem', marginBottom: '5px' }}>{video.title}</h3>
-                            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>👁️ 再生数: {video.viewCount || 0}</p>
+                            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>再生数: {video.viewCount || 0}</p>
 
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                                 <button onClick={() => openEditModal(video)} style={{ flex: 1, padding: '5px 10px', background: '#ccc', color: '#333', border: 'none', borderRadius: '4px' }}>

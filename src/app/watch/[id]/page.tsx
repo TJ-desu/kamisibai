@@ -43,7 +43,7 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
                                 </span>
                             ))}
                         </div>
-                        <span style={{ fontSize: '0.9rem' }}>👁️ {video.viewCount || 0} 回視聴</span>
+                        <span style={{ fontSize: '0.9rem' }}>{video.viewCount || 0} 回視聴</span>
                     </div>
 
                     <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--text-dark)' }}>
