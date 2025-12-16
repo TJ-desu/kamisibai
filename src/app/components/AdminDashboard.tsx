@@ -194,11 +194,55 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         router.refresh();
     };
 
+    // --- Editing Logic ---
+    const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+    const [editForm, setEditForm] = useState({ title: '', description: '', tags: '', summary: '' });
+
+    const openEditModal = (video: Video) => {
+        setEditingVideo(video);
+        setEditForm({
+            title: video.title,
+            description: video.description,
+            tags: video.tags,
+            summary: video.summary
+        });
+    };
+
+    const closeEditModal = () => {
+        setEditingVideo(null);
+        setEditForm({ title: '', description: '', tags: '', summary: '' });
+    };
+
+    const handleUpdateVideo = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingVideo) return;
+
+        try {
+            const res = await fetch(`/api/videos/${editingVideo.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editForm)
+            });
+
+            if (res.ok) {
+                alert('動画情報を更新しました');
+                closeEditModal();
+                router.refresh();
+            } else {
+                const data = await res.json();
+                alert(`更新に失敗しました: ${data.message}`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('エラーが発生しました');
+        }
+    };
+
     return (
         <div className="container" style={{ padding: '40px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <h1 style={{ color: 'var(--primary-color)' }}>
-                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.0.1</span>
+                    管理画面 ({user.role === 'admin' ? '管理者' : '編集者'}: {user.username}) <span style={{ fontSize: '0.8rem', color: '#888' }}>v2.1</span>
                 </h1>
                 <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff' }}>
                     ログアウト
@@ -315,9 +359,14 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                 <h3 style={{ fontSize: '1.2rem', marginBottom: '5px' }}>{video.title}</h3>
                                 <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>👁️ 再生数: {video.viewCount || 0}</p>
                                 <p style={{ fontSize: '0.9rem', marginBottom: '10px' }}>{video.summary}</p>
-                                {user.role === 'admin' && (
-                                    <button onClick={() => handleDeleteVideo(video.id)} style={{ padding: '5px 10px', background: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '4px' }}>削除</button>
-                                )}
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button onClick={() => openEditModal(video)} style={{ flex: 1, padding: '5px 10px', background: '#ccc', color: '#333', border: 'none', borderRadius: '4px' }}>
+                                        編集
+                                    </button>
+                                    {user.role === 'admin' && (
+                                        <button onClick={() => handleDeleteVideo(video.id)} style={{ padding: '5px 10px', background: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '4px' }}>削除</button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                         {myVideos.length === 0 && <p>動画がありません</p>}
@@ -356,6 +405,67 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 )
             }
 
+            {/* Edit Modal */}
+            {editingVideo && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+                }}>
+                    <div style={{
+                        background: '#fff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '600px',
+                        maxHeight: '90vh', overflowY: 'auto'
+                    }}>
+                        <h2 style={{ marginBottom: '20px' }}>動画情報を編集</h2>
+                        <form onSubmit={handleUpdateVideo} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>タイトル</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editForm.title}
+                                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>概要 (140文字以内)</label>
+                                <textarea
+                                    required
+                                    value={editForm.summary}
+                                    onChange={(e) => setEditForm({ ...editForm, summary: e.target.value })}
+                                    maxLength={140}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '60px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>詳細説明</label>
+                                <textarea
+                                    value={editForm.description}
+                                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '100px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>タグ (カンマ区切り)</label>
+                                <input
+                                    type="text"
+                                    value={editForm.tags}
+                                    onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                                <button type="button" onClick={closeEditModal} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ddd', background: '#eee' }}>
+                                    キャンセル
+                                </button>
+                                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>
+                                    更新する
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
         </div >
     );

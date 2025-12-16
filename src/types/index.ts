@@ -12,10 +12,9 @@ export interface Video {
     title: string;
     description: string;
     tags: string[];
-    url: string;
     thumbnail?: string;
-    // Phase 2 fields
-    viewCount: number;
-    uploaderId: string;
+    uploaderId?: string; // ID of the user who uploaded the video
+    viewCount?: number;
+    updatedAt?: string;
     summary: string; // Max 140 chars
 }
