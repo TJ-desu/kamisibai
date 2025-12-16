@@ -23,7 +23,8 @@ export async function getVideos(): Promise<Video[]> {
         return videos.map(v => ({
             ...v,
             tags: v.tags, // Prisma String[], Types String[] - compatible
-            uploaderId: v.uploaderId || undefined
+            uploaderId: v.uploaderId || undefined,
+            updatedAt: v.updatedAt.toISOString() // Convert Date to string
         })) as Video[];
     } catch (e) {
         console.error('Prisma Error (getVideos):', e);
