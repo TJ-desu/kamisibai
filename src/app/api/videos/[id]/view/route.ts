@@ -7,9 +7,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const { id } = params;
 
     // Note: params availability depends on folder structure.
+    // Note: params availability depends on folder structure.
     // /api/videos/[id]/view/route.ts -> params.id should be available.
 
-    const videos = getVideos();
+    const videos = await getVideos();
     const videoIndex = videos.findIndex(v => v.id === id);
 
     if (videoIndex === -1) {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     videos[videoIndex].viewCount = (videos[videoIndex].viewCount || 0) + 1;
-    saveVideos(videos);
+    await saveVideos(videos);
 
     return NextResponse.json({ success: true, viewCount: videos[videoIndex].viewCount });
 }
