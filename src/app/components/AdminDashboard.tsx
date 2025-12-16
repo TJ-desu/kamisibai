@@ -544,11 +544,13 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                                     <p style={{ marginBottom: '10px', fontSize: '0.9rem' }}>動画から新しいサムネイルを作成できます</p>
 
                                     <video
+                                        key={editingVideo.id} // Force remount when video changes
                                         ref={editVideoPreviewRef}
                                         controls
-                                        src={editingVideo.url} // Load video from URL
-                                        crossOrigin="anonymous" // Important for canvas capture if on different domain
-                                        style={{ width: '100%', maxHeight: '300px', backgroundColor: '#000', marginBottom: '10px' }}
+                                        playsInline
+                                        crossOrigin="anonymous" // Important for canvas capture
+                                        src={editingVideo.url}
+                                        style={{ width: '100%', height: 'auto', aspectRatio: '16/9', backgroundColor: '#000', marginBottom: '10px', display: 'block' }}
                                     />
                                     <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                                         <button onClick={handleCaptureEditThumbnail} type="button" style={{ padding: '8px 16px', background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
