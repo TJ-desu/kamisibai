@@ -22,7 +22,7 @@ function decode(val: string): string {
         try {
             const b64 = val.slice(8);
             const reversed = atob(b64);
-            return reversed.split('').reverse().join('');
+            return reversed.split('').reverse().join('').trim();
         } catch (e) {
             console.error('Failed to decode setting', e);
             return val;
@@ -30,7 +30,7 @@ function decode(val: string): string {
     }
     if (val && val.startsWith('ENC_')) {
         try {
-            return atob(val.slice(4));
+            return atob(val.slice(4)).trim();
         } catch (e) {
             console.error('Failed to decode setting', e);
             return val;
