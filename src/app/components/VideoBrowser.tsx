@@ -31,7 +31,7 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
             <div style={{ marginBottom: '40px', textAlign: 'center' }}>
                 <input
                     type="text"
-                    placeholder="キーワードで探す（例：むかしばなし）"
+                    placeholder="キーワードで探す"
                     className="search-input"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
