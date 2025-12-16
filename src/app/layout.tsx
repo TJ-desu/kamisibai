@@ -8,6 +8,7 @@ export const viewport: Viewport = {
 };
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
+import PullToRefreshHandler from "@/app/components/PullToRefresh";
 
 const mPlus = M_PLUS_Rounded_1c({
   weight: ["400", "700"],
@@ -33,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={mPlus.className}>
+        <PullToRefreshHandler />
         {children}
       </body>
     </html>

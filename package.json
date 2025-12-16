@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "next": "^16.0.10",
+    "pulltorefreshjs": "^0.1.22",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "uuid": "^11.0.0"
