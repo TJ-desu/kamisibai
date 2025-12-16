@@ -399,6 +399,12 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                         maxHeight: '90vh', overflowY: 'auto'
                     }}>
                         <h2 style={{ marginBottom: '20px' }}>動画情報を編集</h2>
+                        {editingVideo && (
+                            <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px', fontSize: '0.9rem' }}>
+                                <p><strong>アップロード者:</strong> {initialUsers.find(u => u.id === editingVideo.uploaderId)?.username || '不明'}</p>
+                                <p style={{ color: '#666', fontSize: '0.8rem' }}>ID: {editingVideo.uploaderId}</p>
+                            </div>
+                        )}
                         <form onSubmit={handleUpdateVideo} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>タイトル</label>
