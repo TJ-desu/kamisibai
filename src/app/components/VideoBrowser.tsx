@@ -100,6 +100,7 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                         <Link
                             key={video.id}
                             href={`/watch/${video.id}`}
+                            onClick={() => setPreloadedVideo(video)}
                             style={{
                                 display: 'block',
                                 backgroundColor: '#fff',
@@ -109,7 +110,8 @@ export default function VideoBrowser({ initialVideos }: { initialVideos: Video[]
                                 cursor: 'pointer',
                                 transition: 'transform 0.2s',
                                 border: '1px solid #eee',
-                                textDecoration: 'none'
+                                textDecoration: 'none',
+                                WebkitTapHighlightColor: 'transparent' // Remove tap highlight for faster feel
                             }}
                         >
                             <div style={{ position: 'relative', paddingTop: '66%' /* 4:3 aspect ratio */ }}>

@@ -39,16 +39,23 @@ body {
   min-height: 100dvh;
   /* Dynamic viewport height */
   overscroll-behavior-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button {
+button,
+input,
+textarea,
+select {
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--font-mplus), sans-serif;
+  /* Force font on iOS form elements */
 }
 
 /* Utilities */
