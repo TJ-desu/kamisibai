@@ -10,6 +10,7 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
     const router = useRouter();
     const { preloadedVideo } = useNavigation();
     const [video, setVideo] = useState<Video | null>(preloadedVideo);
+    const [suggestedVideos, setSuggestedVideos] = useState<Video[]>([]);
     // Unwrap params in useEffect or use React.use() if available, but staying safe with Effect for now
     const [videoId, setVideoId] = useState<string>('');
 
@@ -34,19 +35,18 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
     useEffect(() => {
         if (!videoId) return;
 
-        // If no preloaded data, or if we want to ensure freshness/suggestions
-        if (!preloadedVideo || preloadedVideo.id !== videoId) {
-            fetch(`/api/videos/${videoId}`)
-                .then(res => res.json())
-                .then(data => {
-                    setVideo(data);
-                })
-                .catch(err => console.error(err));
-        } else {
-            // Ensure sync
-            setVideo(preloadedVideo);
-        }
-    }, [videoId, preloadedVideo]);
+        // Fetch full data (VIDEO + SUGGESTIONS)
+        // Even if we have preloadedVideo, we need suggestions which are not in preloadedVideo
+        fetch(`/api/videos/${videoId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.video) {
+                    setVideo(data.video);
+                    setSuggestedVideos(data.suggestedVideos || []);
+                }
+            })
+            .catch(err => console.error(err));
+    }, [videoId]);
 
     if (!video) return null; // Or skeleton
 
@@ -57,10 +57,11 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
             left: 0,
             width: '100vw',
             height: '100vh',
-            backgroundColor: '#fdfbf7', // Same bg as page
+            backgroundColor: '#fdfbf7',
             zIndex: 100,
             overflowY: 'auto',
-            animation: 'fadeIn 0.2s ease-out'
+            animation: 'fadeIn 0.2s ease-out',
+            fontFamily: 'var(--font-mplus), sans-serif' // FORCE FONT
         }}>
             <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
                 <button
@@ -73,7 +74,8 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
                         border: 'none',
                         fontSize: '1rem',
                         fontWeight: 'bold',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        fontFamily: 'inherit' // Inherit font
                     }}
                 >
                     ← 戻る
@@ -88,8 +90,7 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
                     aspectRatio: '16 / 9',
                     width: '100%'
                 }}>
-                    {/* The video player will likely work if URL is signed. */}
-                    <VideoPlayer video={video} suggestedVideos={[]} />
+                    <VideoPlayer video={video} suggestedVideos={suggestedVideos} />
                 </div>
 
                 <div style={{ padding: '0 10px' }}>

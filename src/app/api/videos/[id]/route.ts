@@ -15,6 +15,15 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         const video = await prisma.video.findUnique({ where: { id } });
         if (!video) return NextResponse.json({ message: 'Video not found' }, { status: 404 });
 
+        // Fetch suggestions (2 random)
+        const candidateIds = await prisma.video.findMany({ select: { id: true }, where: { id: { not: id } } });
+        let suggestionsRaw: any[] = [];
+        if (candidateIds.length > 0) {
+            const shuffled = candidateIds.sort(() => 0.5 - Math.random());
+            const selectedIds = shuffled.slice(0, 2).map(c => c.id);
+            suggestionsRaw = await prisma.video.findMany({ where: { id: { in: selectedIds } } });
+        }
+
         // Helper to map Prisma result to App Video type
         const mapToVideoType = (v: any) => ({
             ...v,
@@ -23,11 +32,15 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
             updatedAt: v.updatedAt.toISOString()
         });
 
-        // Sign URL
+        // Sign URLs
         const { signVideoUrls } = await import('@/lib/s3');
-        const signedVideos = await signVideoUrls([mapToVideoType(video)]);
+        const videosToSign = [mapToVideoType(video), ...suggestionsRaw.map(mapToVideoType)];
+        const signedVideos = await signVideoUrls(videosToSign);
 
-        return NextResponse.json(signedVideos[0]);
+        return NextResponse.json({
+            video: signedVideos[0],
+            suggestedVideos: signedVideos.slice(1)
+        });
     } catch (error) {
         console.error('Fetch error:', error);
         return NextResponse.json({ message: 'Internal Error' }, { status: 500 });

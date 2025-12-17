@@ -52,37 +52,35 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                     <h3 style={{ color: '#fff', margin: '0 0 8px 0', textShadow: '0 2px 4px rgba(0,0,0,0.8)', fontSize: '1.0rem' }}>
                         つぎのおはなし
                     </h3>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)', // Always 2 columns as requested initially, but let them grow
+                        gap: '12px',
+                        width: '100%',
+                        maxWidth: '600px' // Limit max width on very large screens so they don't get absurdly huge
+                    }}>
                         {suggestedVideos.map(v => (
-                            <Link key={v.id} href={`/watch/${v.id}`} style={{ textDecoration: 'none', width: '42%', maxWidth: '180px' }}>
+                            <Link key={v.id} href={`/watch/${v.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                                 <div style={{
                                     position: 'relative',
                                     aspectRatio: '16/9',
-                                    borderRadius: '6px',
+                                    borderRadius: '8px',
                                     overflow: 'hidden',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                                     border: '1px solid rgba(255,255,255,0.3)',
-                                    marginBottom: '4px'
+                                    marginBottom: '8px',
+                                    transition: 'transform 0.2s',
                                 }}>
                                     <img
                                         src={v.thumbnail}
                                         alt={v.title}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: 0, left: 0, right: 0, bottom: 0,
-                                        background: 'rgba(0,0,0,0.2)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>▶️</span>
-                                    </div>
+                                    {/* Play icon removed as requested */}
                                 </div>
                                 <p style={{
                                     color: '#fff',
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.9rem', // Slightly larger font
                                     fontWeight: 'bold',
                                     textShadow: '0 1px 2px rgba(0,0,0,0.8)',
                                     whiteSpace: 'nowrap',
