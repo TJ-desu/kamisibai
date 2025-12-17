@@ -12,7 +12,14 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
 
     if (!rawVideo) return notFound();
 
-    const [video] = await signVideoUrls([rawVideo]);
+    // Get 2 random suggestions
+    const otherVideos = allVideos.filter(v => v.id !== id);
+    const suggestionsRaw = otherVideos.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+    // Sign all videos (current + suggestions)
+    const signedVideos = await signVideoUrls([rawVideo, ...suggestionsRaw]);
+    const video = signedVideos[0];
+    const suggestedVideos = signedVideos.slice(1);
 
     if (!video) return notFound();
 
@@ -30,7 +37,7 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
                     boxShadow: 'var(--shadow-lg)',
                     marginBottom: '20px'
                 }}>
-                    <VideoPlayer video={video} />
+                    <VideoPlayer video={video} suggestedVideos={suggestedVideos} />
                 </div>
 
                 <div style={{ padding: '0 10px' }}>
