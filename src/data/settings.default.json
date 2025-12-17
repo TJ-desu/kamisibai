@@ -4,6 +4,6 @@
         "secretAccessKey": "REV_ENC_ajRwaXBCRWhRcXZYYUg5WXZ2N0hzT2J3eEZGUExmVFYxWEdOcGl4Mwo=",
         "region": "ap-southeast-2",
         "bucketName": "kamisibai",
-        "cloudFrontUrl": ""
+        "cloudFrontUrl": "https://d4sipkh4pp7zs.cloudfront.net"
     }
 }
