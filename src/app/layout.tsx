@@ -38,7 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
+      <body className={mPlus.variable}>
         <ToastProvider>
           <NavigationProvider>
             <PullToRefreshHandler />
