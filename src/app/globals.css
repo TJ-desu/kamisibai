@@ -103,3 +103,12 @@ select {
     transform: translateY(-20px);
   }
 }
+
+/* Force font on mobile/iOS */
+.font-force-mobile {
+  font-family: var(--font-mplus), sans-serif !important;
+}
+
+.font-force-mobile * {
+  font-family: var(--font-mplus), sans-serif !important;
+}

@@ -48,10 +48,18 @@ export default function InterceptedWatchPage({ params }: { params: Promise<{ id:
             .catch(err => console.error(err));
     }, [videoId]);
 
+    useEffect(() => {
+        // Scroll Lock
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
+
     if (!video) return null; // Or skeleton
 
     return (
-        <div style={{
+        <div className="font-force-mobile" style={{
             position: 'fixed',
             top: 0,
             left: 0,
