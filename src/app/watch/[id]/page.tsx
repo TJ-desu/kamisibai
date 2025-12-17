@@ -28,14 +28,14 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
                     overflow: 'hidden',
                     boxShadow: 'var(--shadow-lg)',
                     marginBottom: '20px',
-                    minHeight: '400px', // Placeholder height to prevent layout shift
+                    aspectRatio: '16 / 9',
+                    width: '100%',
                     position: 'relative'
                 }}>
                     <Suspense fallback={
                         <div style={{
                             width: '100%',
                             height: '100%',
-                            minHeight: '400px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
