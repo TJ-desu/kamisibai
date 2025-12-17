@@ -61,10 +61,11 @@ export default function PullToRefreshGuide() {
                 gap: '20px'
             }}>
                 <div style={{
-                    fontSize: '3rem',
                     animation: 'bounceDown 2s infinite'
                 }}>
-                    ⬇️
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 5v14M19 12l-7 7-7-7" />
+                    </svg>
                 </div>
                 <div>
                     <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '8px' }}>
