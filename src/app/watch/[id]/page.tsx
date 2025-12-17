@@ -1,50 +1,19 @@
 import { prisma } from '@/lib/data';
-import { signVideoUrls } from '@/lib/s3';
 import { notFound } from 'next/navigation';
-import VideoPlayer from '@/app/components/VideoPlayer';
 import Link from 'next/link';
-import { Video } from '@/types';
+import { Suspense } from 'react';
+import AsyncVideoPlayer from './AsyncVideoPlayer';
 
 export default async function WatchPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const { id } = params;
-    // 1. & 2. Parallel Fetch: Main Video ID & Suggestion Candidates
-    const [rawVideo, candidateIds] = await Promise.all([
-        prisma.video.findUnique({ where: { id } }),
-        prisma.video.findMany({ select: { id: true }, where: { id: { not: id } } })
-    ]);
 
-    if (!rawVideo) return notFound();
-
-    // 3. Process Random Suggestions (Fast, in-memory shuffle of IDs)
-    let suggestionsRaw: any[] = [];
-    if (candidateIds.length > 0) {
-        // Shuffle IDs and pick 2
-        const shuffled = candidateIds.sort(() => 0.5 - Math.random());
-        const selectedIds = shuffled.slice(0, 2).map(c => c.id);
-
-        // Fetch full data for these 2 IDs only
-        suggestionsRaw = await prisma.video.findMany({
-            where: { id: { in: selectedIds } }
-        });
-    }
-
-    // Helper to map Prisma result to App Video type
-    const mapToVideoType = (v: any): Video => ({
-        ...v,
-        tags: v.tags,
-        uploaderId: v.uploaderId || undefined,
-        updatedAt: v.updatedAt.toISOString()
+    // 1. Fetch ONLY Main Video Metadata (Fastest possible query)
+    const rawVideo = await prisma.video.findUnique({
+        where: { id }
     });
 
-    // 3. Sign URLs for the 3 videos (1 main + 0-2 suggestions)
-    const videosToSign = [mapToVideoType(rawVideo), ...suggestionsRaw.map(mapToVideoType)];
-    const signedVideos = await signVideoUrls(videosToSign);
-
-    const video = signedVideos[0];
-    const suggestedVideos = signedVideos.slice(1);
-
-    if (!video) return notFound();
+    if (!rawVideo) return notFound();
 
     return (
         <main style={{ minHeight: '100vh', paddingBottom: '40px', backgroundColor: '#fdfbf7' }}>
@@ -58,26 +27,55 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
                     borderRadius: 'var(--radius-md)',
                     overflow: 'hidden',
                     boxShadow: 'var(--shadow-lg)',
-                    marginBottom: '20px'
+                    marginBottom: '20px',
+                    minHeight: '400px', // Placeholder height to prevent layout shift
+                    position: 'relative'
                 }}>
-                    <VideoPlayer video={video} suggestedVideos={suggestedVideos} />
+                    <Suspense fallback={
+                        <div style={{
+                            width: '100%',
+                            height: '100%',
+                            minHeight: '400px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#fff'
+                        }}>
+                            <div className="spinner"></div>
+                            {/* Re-using spinner from loading.tsx via global css or inline if needed. 
+                                 For now, assume simple text or inline spinner style */}
+                            <style>{`
+                                .spinner {
+                                    width: 50px;
+                                    height: 50px;
+                                    border: 5px solid rgba(255, 255, 255, 0.3);
+                                    border-radius: 50%;
+                                    border-top-color: #fff;
+                                    animation: spin 1s ease-in-out infinite;
+                                }
+                                @keyframes spin { to { transform: rotate(360deg); } }
+                            `}</style>
+                        </div>
+                    }>
+                        <AsyncVideoPlayer videoId={id} initialRawVideo={rawVideo} />
+                    </Suspense>
                 </div>
 
                 <div style={{ padding: '0 10px' }}>
-                    <h1 style={{ fontSize: '1.8rem', color: 'var(--text-dark)', marginBottom: '10px' }}>{video.title}</h1>
+                    <h1 style={{ fontSize: '1.8rem', color: 'var(--text-dark)', marginBottom: '10px' }}>{rawVideo.title}</h1>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: '#666', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {video.tags.map(tag => (
+                            {rawVideo.tags.map(tag => (
                                 <span key={tag} style={{ fontSize: '0.9rem', color: 'var(--primary-color)', backgroundColor: 'var(--bg-soft)', padding: '4px 12px', borderRadius: '20px' }}>
                                     #{tag}
                                 </span>
                             ))}
                         </div>
-                        <span style={{ fontSize: '0.9rem' }}>{video.viewCount || 0} 回視聴</span>
+                        <span style={{ fontSize: '0.9rem' }}>{rawVideo.viewCount || 0} 回視聴</span>
                     </div>
 
                     <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--text-dark)' }}>
-                        {video.description}
+                        {rawVideo.description}
                     </div>
                 </div>
             </div>
