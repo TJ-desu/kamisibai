@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import AsyncVideoPlayer from './AsyncVideoPlayer';
+import VideoMetadata from './VideoMetadata';
 
 export default async function WatchPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -61,23 +62,15 @@ export default async function WatchPage(props: { params: Promise<{ id: string }>
                     </Suspense>
                 </div>
 
-                <div style={{ padding: '0 10px' }}>
-                    <h1 style={{ fontSize: '1.8rem', color: 'var(--text-dark)', marginBottom: '10px' }}>{rawVideo.title}</h1>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: '#666', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {rawVideo.tags.map(tag => (
-                                <span key={tag} style={{ fontSize: '0.9rem', color: 'var(--primary-color)', backgroundColor: 'var(--bg-soft)', padding: '4px 12px', borderRadius: '20px' }}>
-                                    #{tag}
-                                </span>
-                            ))}
-                        </div>
-                        <span style={{ fontSize: '0.9rem' }}>{rawVideo.viewCount || 0} 回視聴</span>
-                    </div>
-
-                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--text-dark)' }}>
-                        {rawVideo.description}
-                    </div>
-                </div>
+                {/* Client Side Metadata Rendering for Instant Transition */}
+                <VideoMetadata serverVideo={{
+                    ...rawVideo,
+                    tags: rawVideo.tags,
+                    uploaderId: rawVideo.uploaderId || undefined,
+                    updatedAt: rawVideo.updatedAt.toISOString(),
+                    // Ensure required fields are present
+                    thumbnail: rawVideo.thumbnail || undefined
+                }} />
             </div>
         </main>
     );

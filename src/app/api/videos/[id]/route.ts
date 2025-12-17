@@ -6,6 +6,34 @@ import { cookies } from 'next/headers';
 // Force dynamic
 export const dynamic = 'force-dynamic';
 
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    const { id } = params;
+    if (!id) return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
+
+    try {
+        const video = await prisma.video.findUnique({ where: { id } });
+        if (!video) return NextResponse.json({ message: 'Video not found' }, { status: 404 });
+
+        // Helper to map Prisma result to App Video type
+        const mapToVideoType = (v: any) => ({
+            ...v,
+            tags: v.tags,
+            uploaderId: v.uploaderId || undefined,
+            updatedAt: v.updatedAt.toISOString()
+        });
+
+        // Sign URL
+        const { signVideoUrls } = await import('@/lib/s3');
+        const signedVideos = await signVideoUrls([mapToVideoType(video)]);
+
+        return NextResponse.json(signedVideos[0]);
+    } catch (error) {
+        console.error('Fetch error:', error);
+        return NextResponse.json({ message: 'Internal Error' }, { status: 500 });
+    }
+}
+
 export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const token = (await cookies()).get('auth_token');

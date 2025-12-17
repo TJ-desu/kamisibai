@@ -27,19 +27,26 @@ export const metadata: Metadata = {
   },
 };
 
+import { NavigationProvider } from '@/context/NavigationContext';
+
 export default function RootLayout({
   children,
-}: Readonly<{
+  modal
+}: {
   children: React.ReactNode;
-}>) {
+  modal: React.ReactNode;
+}) {
   return (
     <html lang="ja">
-      <body className={mPlus.className}>
+      <body>
         <ToastProvider>
-          <PullToRefreshHandler />
-          {children}
+          <NavigationProvider>
+            <PullToRefreshHandler />
+            {children}
+            {modal}
+          </NavigationProvider>
         </ToastProvider>
       </body>
     </html>
-  );
+  )
 }

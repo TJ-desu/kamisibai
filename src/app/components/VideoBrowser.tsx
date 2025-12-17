@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useNavigation } from '@/context/NavigationContext';
 import { Video } from '@/types';
 import Link from 'next/link';
 
 export default function VideoBrowser({ initialVideos }: { initialVideos: Video[] }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
+    const { setPreloadedVideo } = useNavigation();
 
     // Extract all unique tags
     const allTags = useMemo(() => {
