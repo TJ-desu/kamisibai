@@ -9,6 +9,7 @@ export const viewport: Viewport = {
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import PullToRefreshHandler from "@/app/components/PullToRefresh";
+import PullToRefreshGuide from "@/app/components/PullToRefreshGuide";
 import { ToastProvider } from "@/context/ToastContext";
 
 const mPlus = M_PLUS_Rounded_1c({
@@ -47,6 +48,7 @@ export default function RootLayout({
         <ToastProvider>
           <NavigationProvider>
             <PullToRefreshHandler />
+            <PullToRefreshGuide />
             {children}
             {modal}
           </NavigationProvider>
