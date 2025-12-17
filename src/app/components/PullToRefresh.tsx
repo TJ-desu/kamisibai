@@ -15,9 +15,9 @@ export default function PullToRefreshHandler() {
                 onRefresh: () => {
                     window.location.reload();
                 },
-                distThreshold: 70,
-                distMax: 140,
-                distReload: 60,
+                distThreshold: 50, // Reduced from 70 for easier trigger
+                distMax: 80, // Reduced from 140 to prevent excessive pulling
+                distReload: 50, // Matches threshold
                 instructionsPullToRefresh: '引き下げて更新',
                 instructionsReleaseToRefresh: '離して更新',
                 instructionsRefreshing: '更新中...',
