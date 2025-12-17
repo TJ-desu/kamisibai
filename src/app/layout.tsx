@@ -43,7 +43,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={mPlus.variable}>
+      <body className={mPlus.variable} style={{ backgroundColor: '#fdfbf7', minHeight: '100dvh' }}>
         <ToastProvider>
           <NavigationProvider>
             <PullToRefreshHandler />

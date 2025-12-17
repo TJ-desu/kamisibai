@@ -38,7 +38,8 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   /* Dynamic viewport height */
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: none;
+  /* Disable native bounce to let JS handle PTR instantly */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
