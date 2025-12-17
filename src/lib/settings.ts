@@ -10,6 +10,7 @@ export interface AwsSettings {
     secretAccessKey: string;
     region: string;
     bucketName: string;
+    cloudFrontUrl?: string;
 }
 
 export interface Settings {
@@ -46,6 +47,7 @@ let settingsCache: Settings = {
         secretAccessKey: decode((defaultSettings as any).aws.secretAccessKey),
         region: (defaultSettings as any).aws.region,
         bucketName: (defaultSettings as any).aws.bucketName,
+        cloudFrontUrl: (defaultSettings as any).aws.cloudFrontUrl,
     }
 };
 

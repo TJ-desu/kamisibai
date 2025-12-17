@@ -21,9 +21,12 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
 
     // Ensure key components are properly encoded for the URL (and Signature match)
     const encodedKey = key.split('/').map(encodeURIComponent).join('/');
-    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${encodedKey}`;
+    const s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/${encodedKey}`;
+    const publicUrl = settings.aws.cloudFrontUrl
+        ? `${settings.aws.cloudFrontUrl}/${encodedKey}`
+        : s3Url;
 
-    const request = new Request(url, {
+    const request = new Request(s3Url, {
         method: 'PUT',
         headers: {
             'Content-Type': contentType,
@@ -44,7 +47,7 @@ export async function uploadFileToS3(buffer: ArrayBuffer | Uint8Array, key: stri
         throw new Error(`S3 Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    return url;
+    return publicUrl;
 }
 
 export async function putJSON(key: string, data: any): Promise<void> {
@@ -105,15 +108,33 @@ export async function signVideoUrls(videos: Video[]): Promise<Video[]> {
         let signedUrl = v.url;
         let signedThumbnail = v.thumbnail;
 
+        const { cloudFrontUrl } = settings.aws;
+
         try {
-            if (v.url && v.url.includes('amazonaws.com') && !v.url.includes('X-Amz-Signature')) {
-                signedUrl = await client.getPresignedUrl(v.url);
-            }
-            if (v.thumbnail && v.thumbnail.includes('amazonaws.com') && !v.thumbnail.includes('X-Amz-Signature')) {
-                signedThumbnail = await client.getPresignedUrl(v.thumbnail);
-            }
+            // Helper to process URL
+            const processUrl = async (targetUrl: string | null | undefined) => {
+                if (!targetUrl) return targetUrl;
+
+                // If CloudFront is configured, verify if it's an S3 URL and swap domain
+                if (cloudFrontUrl && targetUrl.includes('amazonaws.com')) {
+                    const urlObj = new URL(targetUrl);
+                    // Simple path preservation with new base
+                    return `${cloudFrontUrl}${urlObj.pathname}`;
+                }
+
+                // Fallback to S3 Signing if NO CloudFront (and it is S3)
+                if (targetUrl.includes('amazonaws.com') && !targetUrl.includes('X-Amz-Signature')) {
+                    return await client.getPresignedUrl(targetUrl);
+                }
+
+                return targetUrl;
+            };
+
+            signedUrl = (await processUrl(v.url)) || v.url;
+            signedThumbnail = (await processUrl(v.thumbnail)) || v.thumbnail;
+
         } catch (e) {
-            console.error('Failed to sign video URL:', e);
+            console.error('Failed to sign/process video URL:', e);
         }
 
         return {
