@@ -42,17 +42,18 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     zIndex: 10,
-                    padding: '20px'
+                    padding: '20px 10px',
+                    backgroundColor: 'rgba(0,0,0,0.6)'
                 }}>
-                    <h3 style={{ color: '#fff', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                    <h3 style={{ color: '#fff', margin: '0 0 10px 0', textShadow: '0 2px 4px rgba(0,0,0,0.8)', fontSize: '1.2rem' }}>
                         つぎのおはなし
                     </h3>
-                    <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', width: '100%', flexWrap: 'wrap' }}>
                         {suggestedVideos.map(v => (
-                            <Link key={v.id} href={`/watch/${v.id}`} style={{ textDecoration: 'none', width: '45%', maxWidth: '300px' }}>
+                            <Link key={v.id} href={`/watch/${v.id}`} style={{ textDecoration: 'none', width: '48%', maxWidth: '200px' }}>
                                 <div style={{
                                     position: 'relative',
                                     aspectRatio: '16/9',
@@ -60,8 +61,7 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                                     overflow: 'hidden',
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                                     border: '2px solid rgba(255,255,255,0.2)',
-                                    transition: 'transform 0.2s',
-                                    marginBottom: '8px'
+                                    marginBottom: '4px'
                                 }}>
                                     <img
                                         src={v.thumbnail}
@@ -74,14 +74,23 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                                         background: 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: 0,
-                                        transition: 'opacity 0.2s'
-                                    }} className="hover-overlay">
-                                        <span style={{ fontSize: '3rem' }}>▶️</span>
+                                        justifyContent: 'center'
+                                    }}>
+                                        <span style={{ fontSize: '2rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>▶️</span>
                                     </div>
                                 </div>
-                                <p style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold', textShadow: '0 1px 2px rgba(0,0,0,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <p style={{
+                                    color: '#fff',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    margin: 0,
+                                    lineHeight: '1.3'
+                                }}>
                                     {v.title}
                                 </p>
                             </Link>
@@ -98,14 +107,16 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                             }
                         }}
                         style={{
-                            marginTop: '30px',
-                            padding: '10px 20px',
-                            background: 'rgba(255,255,255,0.2)',
+                            marginTop: '10px',
+                            padding: '8px 24px',
+                            background: 'rgba(255,255,255,0.25)',
                             color: '#fff',
-                            border: '1px solid #fff',
+                            border: '1px solid rgba(255,255,255,0.6)',
                             borderRadius: '20px',
                             cursor: 'pointer',
-                            backdropFilter: 'blur(5px)'
+                            fontSize: '0.9rem',
+                            fontWeight: 'bold',
+                            backdropFilter: 'blur(4px)'
                         }}
                     >
                         もういちどみる ↺
