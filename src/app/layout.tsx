@@ -25,6 +25,11 @@ export const metadata: Metadata = {
     icon: '/icon.png',
     apple: '/icon.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default', // or 'black-translucent' but 'default' (white/black) adapts better usually. User said "black state", maybe they want white? Let's try 'default' which is white usually.
+    title: 'かみしばい',
+  },
 };
 
 import { NavigationProvider } from '@/context/NavigationContext';

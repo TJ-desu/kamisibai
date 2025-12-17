@@ -5,23 +5,29 @@ import PullToRefresh from 'pulltorefreshjs';
 
 export default function PullToRefreshHandler() {
     useEffect(() => {
-        // Only run on client
         if (typeof window === 'undefined') return;
 
-        // Initialize PullToRefresh
-        PullToRefresh.init({
-            mainElement: 'body', // Refresh happens when pulling on body
-            triggerElement: 'body', // Trigger selector
-            onRefresh: () => {
-                window.location.reload(); // Simple reload
-            },
-            distThreshold: 70, // Distance required to trigger
-            distMax: 140, // Max distance
-            distReload: 60, // Distance to hold while reloading
-            instructionsPullToRefresh: '引き下げて更新',
-            instructionsReleaseToRefresh: '離して更新',
-            instructionsRefreshing: '更新中...',
-        });
+        // wrapper to ensure body is ready
+        const initPTR = () => {
+            PullToRefresh.init({
+                mainElement: 'body',
+                triggerElement: 'body',
+                onRefresh: () => {
+                    window.location.reload();
+                },
+                distThreshold: 70,
+                distMax: 140,
+                distReload: 60,
+                instructionsPullToRefresh: '引き下げて更新',
+                instructionsReleaseToRefresh: '離して更新',
+                instructionsRefreshing: '更新中...',
+                // Fix for Android/iOS glitches
+                // passive: false, // Type error
+            });
+        };
+
+        // Initialize immediately
+        initPTR();
 
         // Cleanup
         return () => {
@@ -29,5 +35,5 @@ export default function PullToRefreshHandler() {
         };
     }, []);
 
-    return null; // This component handles side effects only
+    return null;
 }
