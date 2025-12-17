@@ -54,10 +54,10 @@ export default function VideoPlayer({ video, suggestedVideos }: VideoPlayerProps
                     </h3>
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)', // Always 2 columns as requested initially, but let them grow
+                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', // minmax(0, 1fr) prevents content from forcing column wider
                         gap: '12px',
                         width: '100%',
-                        maxWidth: '600px' // Limit max width on very large screens so they don't get absurdly huge
+                        maxWidth: '600px'
                     }}>
                         {suggestedVideos.map(v => (
                             <Link key={v.id} href={`/watch/${v.id}`} style={{ textDecoration: 'none', display: 'block' }}>
