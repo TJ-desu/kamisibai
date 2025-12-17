@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Video, User } from '@/types';
+import { useToast } from '@/context/ToastContext';
 
 interface AdminDashboardProps {
     user: { id: string; username: string; role: 'admin' | 'editor' };
@@ -12,6 +13,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ user, initialVideos, initialUsers }: AdminDashboardProps) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<'upload' | 'users' | 'videos'>('upload');
 
     // Upload State
@@ -72,7 +74,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             if (droppedFile.type === 'video/mp4') {
                 setFile(droppedFile);
             } else {
-                alert('MP4ファイルのみアップロード可能です');
+                showToast('MP4ファイルのみアップロード可能です', 'error');
             }
         }
     };
@@ -112,7 +114,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) {
-            alert('動画ファイルを選択してください');
+            showToast('動画ファイルを選択してください', 'error');
             return;
         }
 
@@ -177,7 +179,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             });
 
             if (res.ok) {
-                alert('動画を追加しました！');
+                showToast('動画を追加しました！', 'success');
                 setFormData({ title: '', description: '', tags: '' });
                 setFile(null);
                 setThumbnailBlob(null);
@@ -193,7 +195,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
 
         } catch (error: any) {
             console.error(error);
-            alert(`エラーが発生しました:\n${error.message || error}`);
+            showToast(`エラーが発生しました:\n${error.message || error}`, 'error');
             setLoading(false);
         }
     };
@@ -204,13 +206,13 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         try {
             const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                alert('削除しました');
+                showToast('削除しました', 'success');
                 router.refresh();
             } else {
-                alert('削除に失敗しました');
+                showToast('削除に失敗しました', 'error');
             }
         } catch (error) {
-            alert('エラーが発生しました');
+            showToast('エラーが発生しました', 'error');
         }
     };
 
@@ -298,7 +300,7 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
         } catch (error: any) {
             console.error('Thumbnail capture error:', error);
             setCaptureLoading(false);
-            alert(`サムネイルの作成に失敗しました。\nエラー: ${error.message || 'SecurityError'}\n\n※ セキュリティ設定(CORS)により、この動画からのキャプチャが許可されていない可能性があります。`);
+            showToast(`サムネイルの作成に失敗しました。\nエラー: ${error.message || 'SecurityError'}\n\n※ セキュリティ設定(CORS)により、この動画からのキャプチャが許可されていない可能性があります。`, 'error');
         }
     };
 
@@ -321,16 +323,16 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
             });
 
             if (res.ok) {
-                alert('動画情報を更新しました');
+                showToast('動画情報を更新しました', 'success');
                 closeEditModal();
                 router.refresh();
             } else {
                 const data = await res.json();
-                alert(`更新に失敗しました: ${data.message}`);
+                showToast(`更新に失敗しました: ${data.message}`, 'error');
             }
         } catch (error) {
             console.error(error);
-            alert('エラーが発生しました');
+            showToast('エラーが発生しました', 'error');
         }
     };
 
@@ -346,15 +348,15 @@ export default function AdminDashboard({ user, initialVideos, initialUsers }: Ad
                 body: JSON.stringify(newUser)
             });
             if (res.ok) {
-                alert('編集者を作成しました');
+                showToast('編集者を作成しました', 'success');
                 setNewUser({ username: '', password: '' });
                 router.refresh();
             } else {
                 const data = await res.json();
-                alert(data.message || 'エラーが発生しました');
+                showToast(data.message || 'エラーが発生しました', 'error');
             }
         } catch (error) {
-            alert('エラーが発生しました');
+            showToast('エラーが発生しました', 'error');
         }
     };
 
