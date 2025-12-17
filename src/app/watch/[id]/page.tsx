@@ -8,21 +8,15 @@ import { Video } from '@/types';
 export default async function WatchPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const { id } = params;
-
-    // 1. Fetch the main video (Efficient unique lookup)
-    const rawVideo = await prisma.video.findUnique({
-        where: { id }
-    });
+    // 1. & 2. Parallel Fetch: Main Video ID & Suggestion Candidates
+    const [rawVideo, candidateIds] = await Promise.all([
+        prisma.video.findUnique({ where: { id } }),
+        prisma.video.findMany({ select: { id: true }, where: { id: { not: id } } })
+    ]);
 
     if (!rawVideo) return notFound();
 
-    // 2. Optimized Random Suggestions
-    // Instead of fetching ALL videos, fetch IDs valid for suggestions (excluding current)
-    const candidateIds = await prisma.video.findMany({
-        select: { id: true },
-        where: { id: { not: id } }
-    });
-
+    // 3. Process Random Suggestions (Fast, in-memory shuffle of IDs)
     let suggestionsRaw: any[] = [];
     if (candidateIds.length > 0) {
         // Shuffle IDs and pick 2
