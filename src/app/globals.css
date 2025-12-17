@@ -38,8 +38,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   /* Dynamic viewport height */
-  overscroll-behavior-y: none;
-  /* Disable native bounce to let JS handle PTR instantly */
+  overscroll-behavior-y: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -102,6 +101,20 @@ select {
   100% {
     opacity: 0;
     transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 0.6;
   }
 }
 
